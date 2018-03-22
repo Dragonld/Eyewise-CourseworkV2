@@ -1,20 +1,20 @@
 <nav class="navbar navbar-expand-md navbar-light bg-warning mb-4" style="padding-bottom: 0 ; padding-top: 0 ; font-size: 15px">
     {# bg=sucess,info,primary,secondary, warning,danger,light,dark,transparent #}
     {# navbar= brand, text, toggler, toggler-icon, nav, collapse #}
-    <a class="navbar-brand" href="/contact"><strong>Contact us</strong></a>
+    <a class="navbar-brand" href="{{ url_for('contact') }}"><strong>Contact us</strong></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="/contact">Contact details</a>
+            <a class="nav-link" href="{{ url_for('contact') }}">Contact details</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/Social_media">Social media</a>
+            <a class="nav-link" href="{{ url_for('social_media') }}">Social media</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/where_to_find">Where to find us</a>
+            <a class="nav-link" href="{{ url_for('where_to_find') }}">Where to find us</a>
           </li>
         </ul>
       </div>
