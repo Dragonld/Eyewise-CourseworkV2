@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <form action="database/insert.php" metho="get">
+        <legend> Name </legend>
+        First names <input name="firstNames"> </p>
+        Last name <input name="lastName"> </p>
+        </fieldset>
+        <fieldset>
+            <Legend>Contact Details</legend>
+            Email <input type="email">
+        </fieldset>
+        <input type="submit" value="Submit">
+    </form>
+
+{% endblock %}
