@@ -1,0 +1,4 @@
+input[type=email]:valid { background: green }
+input[type=email]:invalid { background: red }
+li nav-link {color: white}
+body {background: lightblue}
