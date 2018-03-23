@@ -29,7 +29,7 @@ def about():
 def contact():
     return render_template("contact.html", title="Contact")
 
-@app.route("/Social_media")
+@app.route("/social_media")
 def Social_media():
     return render_template("Social_media.html", title="Contact")
 
