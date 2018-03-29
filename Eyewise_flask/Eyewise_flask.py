@@ -1,4 +1,5 @@
 # analysis of missed and empty appointments and profitability(appointments compared to money spent)
+# link to google api calander and send out automated email
 from app import app, db
 from app.models import User, Post
 
@@ -10,3 +11,7 @@ def make_shell_context():
         'User': User,
         'Post': Post
     }
+
+
+if __name__ == "__main__":
+    app.run()

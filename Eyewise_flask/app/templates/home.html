@@ -1,9 +1,10 @@
 {% extends "base/layout.html" %}
 
 {% block body %}
-    <div class="text-centre">
-        <h1><center>Eyewise Opticians</center></h1>
+    <div class="text-center">
+        <h1  style="background-color: yellow; margin-left: 9em; margin-right: 9em; padding-bottom: 0.1em">Eyewise Opticians</h1>
     </div>
+        <h2>Hello,{{ current_user.username }}!</h2>
     {% for post in posts %}
         <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
     {% endfor %}
