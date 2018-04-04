@@ -1,6 +1,7 @@
 input[type=email]:valid { background: green }
 input[type=email]:invalid { background: red }
 body {background: lightblue;}
+div.container {max-width: 1500px; padding: 0; border: 0;}
 
 
 

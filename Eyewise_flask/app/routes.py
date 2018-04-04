@@ -1,5 +1,5 @@
 from app import app, db
-from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm
+from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
 from flask import render_template, url_for, redirect, request, flash
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
@@ -87,7 +87,7 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(first_name=form.first_name.data,last_name= form.last_name.data,username=form.username.data,email=form.email.data)
+        user = User(first_name=form.first_name.data,last_name= form.last_name.data,username=form.username.data,email=form.email.data, admin=False)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -111,17 +111,41 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
-@app.route('/edit_profile', methods=['GET', 'POST'])
+@app.route('/user/edit_profile/<username>', methods=['GET', 'POST'])
 @login_required
-def edit_profile():
-    form = EditProfileForm(current_user.username)
+def edit_profile(username):
+    form = EditProfileForm(current_user.username, current_user.email, )
     if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid passsword")
+            return redirect(url_for('edit_profile'))
         current_user.username = form.username.data
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.email = form.email.data
         current_user.about_me = form.about_me.data
+        user.set_password(form.password.data)
         db.session.commit()
         flash('Your changes have been saved.')
-        return redirect(url_for('edit_profile'))
+        return redirect(url_for('edit_profile', username = current_user.username))
     elif request.method == 'GET':
         form.username.data = current_user.username
+        form.first_name.data = current_user.first_name
+        form.last_name.data = current_user.last_name
+        form.email.data = current_user.email
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='Edit Profile', form=form)
+
+@app.route("/user/edit_password/<username>", methods=["GET", "POST"])
+@login_required
+def change_password(username):
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=current_user.username).first()
+        if user is None or not user.check_password(form.password.data):
+            flash("Invalid password")
+            return redirect(url_for('change_password', username=current_user.username))
+        user.set_password(form.new_password.data)
+        db.session.commit()
+    return render_template("change_password.html", title="Change password", form= form)

@@ -23,6 +23,7 @@ class User(UserMixin, db.Model):
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic') #convert to datetime, appointments
+    admin = db.Column(db.Boolean, index=True, unique=False)
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)

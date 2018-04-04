@@ -11,8 +11,8 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
     </head>
     <body>
+        <div class="container">
         {% include"includes/_navbar.html" %}
-        <div class="text-center">
         {% block body %}{% endblock %}
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
         </div>
