@@ -50,6 +50,9 @@ def where_to_find():
 def make_appointment():
     form = MakeAppointmentForm()
     if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        user.total_num_app += 1
+        db.session.commit()
         # Put code here to add the appointment to the database
         print('First name :: {}\nLast name :: {}\nemail :: {}'.format(form.first_name.data, form.last_name.data, form.email.data))
         return redirect(url_for('home'))
@@ -143,7 +146,7 @@ def change_password(username):
     form = ChangePasswordForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=current_user.username).first()
-        if user is None or not user.check_password(form.password.data):
+        if user is None or not user.check_password(form.old_password.data):
             flash("Invalid password")
             return redirect(url_for('change_password', username=current_user.username))
         user.set_password(form.new_password.data)

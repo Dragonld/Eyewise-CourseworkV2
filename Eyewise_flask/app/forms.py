@@ -26,6 +26,13 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     admin = False
+    telephone_num = StringField("Telephone number", validators=[DataRequired])
+    total_num_app = 0 
+    app_missed = 0
+    total_mon_spen = 0.0
+    perc_app_attend = 0.0
+    mon_per_appoint = 0.0
+
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -71,5 +78,5 @@ class EditProfileForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[DataRequired()])
     new_password2 = PasswordField('Repeat new password', validators=[DataRequired(), EqualTo("new_password")])
-    password = PasswordField('Password', validators=[DataRequired()])
+    old_password = PasswordField('Old password', validators=[DataRequired()])
     submit = SubmitField("Confirm change")

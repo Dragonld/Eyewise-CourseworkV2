@@ -18,12 +18,18 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    telephone_num = db.Column(db.String("14"), index=True)
+    total_num_app = db.Column(db.Integer)
+    app_missed = db.Column(db.Integer)
+    total_mon_spen = db.Column(db.Float)
+    perc_app_attend = db.Column(db.Float)
+    mon_per_appoint = db.Column(db.Float)
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic') #convert to datetime, appointments
-    admin = db.Column(db.Boolean, index=True, unique=False)
+    admin = db.Column(db.Boolean, index=True)
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
@@ -50,6 +56,13 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post: {}>'.format(self.body)
+
+class Appointments(db.Model):
+    id = db.Column(db.integer, primary_key=True)
+    need_optom = db.Column(db.Boolean)
+    practice = db.Column(db.String)
+    date_time = db.Column(db.DateTime, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
 @login.user_loader
 def load_user(i):
