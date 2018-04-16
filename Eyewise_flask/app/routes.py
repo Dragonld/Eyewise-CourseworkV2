@@ -128,6 +128,11 @@ def edit_profile(username):
         current_user.last_name = form.last_name.data
         current_user.email = form.email.data
         current_user.about_me = form.about_me.data
+        current_user.telephone_num = form.telephone_num.data
+        current_user.address1 = form.address1.data
+        current_user.address2 = form.address2.data
+        current_user.town_city = form.town_city.data
+        current_user.postcode = form.postcode.data
         user.set_password(form.password.data)
         db.session.commit()
         flash('Your changes have been saved.')
@@ -138,6 +143,11 @@ def edit_profile(username):
         form.last_name.data = current_user.last_name
         form.email.data = current_user.email
         form.about_me.data = current_user.about_me
+        form.telephone_num.data = current_user.telephone_num
+        form.address1.data = current_user.address1
+        form.address2.data = current_user.address2
+        form.town_city.data = current_user.town_city
+        form.postcode.data = current_user.postcode
     return render_template('edit_profile.html', title='Edit Profile', form=form)
 
 @app.route("/user/edit_password/<username>", methods=["GET", "POST"])

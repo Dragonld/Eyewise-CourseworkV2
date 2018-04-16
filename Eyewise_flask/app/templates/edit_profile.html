@@ -33,6 +33,41 @@
             {% endfor %}
         </p>
         <p>
+            {{ form.telephone_num.label }}<br>
+            {{ form.telephone_num(cols=14, rows=4) }}<br>
+            {% for error in form.telephone_num.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.address1.label }}<br>
+            {{ form.address1(cols=50, rows=4) }}<br>
+            {% for error in form.address1.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.address2.label }}<br>
+            {{ form.address2(cols=50, rows=4) }}<br>
+            {% for error in form.address2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.town_city.label }}<br>
+            {{ form.town_city(cols=50, rows=4) }}<br>
+            {% for error in form.town_city.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.postcode.label }}<br>
+            {{ form.postcode(cols=50, rows=4) }}<br>
+            {% for error in form.postcode.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.about_me.label }}<br>
             {{ form.about_me(cols=50, rows=4) }}<br>
             {% for error in form.about_me.errors %}

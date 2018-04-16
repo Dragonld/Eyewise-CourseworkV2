@@ -9,6 +9,12 @@
                 {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
                 {% if user.last_seen %}<p>Last seen on: {{ user.last_seen }}</p>{% endif %}
         </tr>
+        <tr>
+            <td>
+               {% if user.address %} <p> Address; {{ user.address1 }}, {{ user.address2 }}, {{ user.town_city }}, {{ user.postcode }}</p> {% endif %}
+                {% if user.telephone_num %}<p> Telephone number: {{ user.telephone_num }}</p> {% endif %}
+            </td>
+        </tr>
     </table>
     <hr>
     {% for post in posts %}

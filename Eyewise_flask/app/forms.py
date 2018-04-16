@@ -22,12 +22,16 @@ class RegistrationForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
+    address1 = StringField("Address 1")
+    address2 = StringField("Address 2")
+    town_city = StringField("Town/City")
+    postcode = StringField("Postcode")
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     admin = False
     telephone_num = StringField("Telephone number", validators=[DataRequired])
-    total_num_app = 0 
+    total_num_app = 0
     app_missed = 0
     total_mon_spen = 0.0
     perc_app_attend = 0.0
@@ -54,6 +58,11 @@ class EditProfileForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
+    telephone_num = StringField("Telephone number", validators=[DataRequired])
+    address1 = StringField("Address 1")
+    address2 = StringField("Address 2")
+    town_city = StringField("Town/City")
+    postcode = StringField("Postcode")
     submit = SubmitField('Submit')
 
     def __init__(self, original_username, original_email,  *args, **kwargs):
