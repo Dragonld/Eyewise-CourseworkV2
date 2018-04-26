@@ -10,6 +10,7 @@ followers = db.Table('followers',
     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -28,12 +29,14 @@ class User(UserMixin, db.Model):
     total_mon_spen = db.Column(db.Float)
     perc_app_attend = db.Column(db.Float)
     mon_per_appoint = db.Column(db.Float)
+
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
-        backref=db.backref('followers', lazy='dynamic'), lazy='dynamic') #convert to datetime, appointments
-    admin = db.Column(db.Integer, index=True)
+        backref=db.backref('followers', lazy='dynamic'), lazy='dynamic') #convert to cart
+    admin = db.Column(db.Boolean, index=True)
+    role = db.Column(db.Integer)
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
@@ -61,12 +64,47 @@ class Post(db.Model):
     def __repr__(self):
         return '<Post: {}>'.format(self.body)
 
+
 class Appointments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     need_optom = db.Column(db.Boolean)
     practice = db.Column(db.String)
-    date_time = db.Column(db.DateTime, index=True)
+    date_time = db.Column(db.DateTime, index=True, unique=True)
+    time = db.Column(db.Time, index=True)
+    date = db.Column(db.Date, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+    def __repr__(self):
+        return '<Appointment: {}>'.format(self.date_time)
+
+
+class Shop(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_name = db.Column(db.String, index=True)
+    brand = db.Column(db.String, index=True)
+    sex = db.Column(db.String(10), index=True)
+    price = db.Column(db.Float)
+    image = db.Column(db.String)
+
+    def __repr__(self):
+        return '<Shop: {}>'.format(self.item_name)
+
+
+class Stock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    colour = db.Column(db.String, index=True)
+    quantity = db.Column(db.Integer)
+    item_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
+
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    shop_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
+
+    def __repr__(self):
+        return '<order: {}>'.format(self.id)
+
 
 @login.user_loader
 def load_user(i):

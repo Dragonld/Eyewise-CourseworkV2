@@ -38,6 +38,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_post_timestamp'), 'post', ['timestamp'], unique=False)
+
     # ### end Alembic commands ###
 
 

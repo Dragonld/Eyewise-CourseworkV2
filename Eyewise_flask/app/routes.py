@@ -1,12 +1,10 @@
 from app import app, db
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
-from flask import render_template, url_for, redirect, request, flash
+from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, Shop
 from werkzeug.urls import url_parse
 from datetime import datetime
-
-
 
 
 @app.route("/")
@@ -62,6 +60,7 @@ def make_appointment():
         form.email.data = current_user.email
     return render_template("make_appointment.html", title="Appointment form", form=form)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -79,10 +78,12 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -90,7 +91,10 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(first_name=form.first_name.data,last_name= form.last_name.data,username=form.username.data,email=form.email.data, admin=False)
+        user = User(first_name=form.first_name.data,last_name= form.last_name.data,username=form.username.data,
+                    email=form.email.data,admin=False,telephone_num=form.telephone_num.data,address1=form.address1.data,
+                    address2=form.address2.data,town_city=form.town_city.data,postcode=form.postcode.data,total_num_app=0,
+                    app_missed=0,total_mon_spen=0)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -114,15 +118,12 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
+
 @app.route('/user/edit_profile/<username>', methods=['GET', 'POST'])
 @login_required
 def edit_profile(username):
-    form = EditProfileForm(current_user.username, current_user.email, )
+    form = EditProfileForm(current_user.username, current_user.email)
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash("Invalid passsword")
-            return redirect(url_for('edit_profile'))
         current_user.username = form.username.data
         current_user.first_name = form.first_name.data
         current_user.last_name = form.last_name.data
@@ -133,10 +134,9 @@ def edit_profile(username):
         current_user.address2 = form.address2.data
         current_user.town_city = form.town_city.data
         current_user.postcode = form.postcode.data
-        user.set_password(form.password.data)
         db.session.commit()
         flash('Your changes have been saved.')
-        return redirect(url_for('edit_profile', username = current_user.username))
+        return redirect(url_for('edit_profile', username=current_user.username))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.first_name.data = current_user.first_name
@@ -150,9 +150,10 @@ def edit_profile(username):
         form.postcode.data = current_user.postcode
     return render_template('edit_profile.html', title='Edit Profile', form=form)
 
+
 @app.route("/user/edit_password/<username>", methods=["GET", "POST"])
 @login_required
-def change_password(username):
+def change_password(usename):
     form = ChangePasswordForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=current_user.username).first()
@@ -162,3 +163,37 @@ def change_password(username):
         user.set_password(form.new_password.data)
         db.session.commit()
     return render_template("change_password.html", title="Change password", form= form)
+
+
+@app.route("/Shop", methods=["GET", "POST"])
+@login_required
+def shop_main(shop_filter=""):
+    shop_filter = request.args.get(shop_filter)
+    if shop_filter=="Mens" or shop_filter=="Female":
+        shop = Shop.query.filter_by(sex=shop_filter).all()
+        print("Boo")
+    else:
+        shop = Shop.query.all()
+        print("OOF")
+    for i in shop:
+        print(i.item_name)
+    print(request.args.get(shop_filter))
+    return render_template("shop_main.html", Title="Shop", shop=shop)
+
+@app.route("/Shop/<shop_item>", methods=["GET","POST"])
+@login_required
+def shop_item(shop_item):
+    return render_template("shop_item.html", Title="Shop item", shop_item=shop_item)
+
+@app.route("/Shop/Cart/<username>", methods=["GET","POST"])
+@login_required
+def user_cart(username):
+    return render_template("shop_item.html", Title="Shop item", shop_item=shop_item)
+
+@app.route("/Super_secret_page", methods=["GET", "POST"])
+@login_required
+def admin_page():
+    if current_user.role < 1:
+            return abort(404)
+    else:
+        return render_template("admin_page.html", Title="Admin")

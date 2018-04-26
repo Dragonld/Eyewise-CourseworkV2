@@ -1,4 +1,15 @@
 {% extends "base/layout.html" %}
+{% block head %}
+    <script>
+        $(document).ready(function() {
+            var hour = new Date().getHours();
+            var greeting = "";
+            if (hour<12) {greeting = "Good morning {{ current_user.first_name}}";}
+            else {greeting = "Good afternoon {{ current_user.first_name }}";}
+            $("#introduction")[0].innerHTML = (greeting);
+        });
+    </script>
+{% endblock %}
 
 {% block body %}
     <div class="text-center">
@@ -6,9 +17,10 @@
             <h1  style="background-color: yellow;padding-bottom: 0.1em">Eyewise Opticians</h1>
         </div>
     </div>
-        <h2>Hello {{ current_user.username }}!</h2>
+    <h2 id="introduction"></h2>
     {% for post in posts %}
         <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
     {% endfor %}
+
 
 {% endblock %}

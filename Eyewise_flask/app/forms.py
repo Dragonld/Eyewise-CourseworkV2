@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, TextAreaField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, TextAreaField, SubmitField, DateTimeField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length
 from app.models import User
+from datetime import datetime
+
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -14,8 +16,10 @@ class MakeAppointmentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('E-mail', validators=[DataRequired(), Email()])
+    date_time = DateTimeField("Appointment Date and Time", validators=[DataRequired()], min= datetime.now())
 
     submit = SubmitField('Book Appointment')
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -29,7 +33,7 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
-    admin = False
+    admin = 0
     telephone_num = StringField("Telephone number", validators=[DataRequired])
     total_num_app = 0
     app_missed = 0
@@ -83,6 +87,7 @@ class EditProfileForm(FlaskForm):
             user = User.query.filter_by(email=email.data).first()
             if user is not None:
                 raise ValidationError('Please use a different email address.')
+
 
 class ChangePasswordForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[DataRequired()])
