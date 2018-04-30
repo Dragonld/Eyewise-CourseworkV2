@@ -1,1 +1,28 @@
-{% extends shop_item_base %}
+{% extends "base/shop_item_base.html" %}
+{% block head %}
+    <style>
+        .Price:before{content:"£"}
+        .item_img{height: 120px; width: 240px; text-align: center}
+        img {width: 100%; height: 100%}
+    </style>
+{% endblock %}
+
+{% block shop_item_body %}
+    <div class="text-center">
+    <div  class="item_img">
+    <img style="text-align: center" src={{ url_for("static", filename=shop_item.image) }} >
+    </div>
+    </div>
+    <select name="cars">
+        <option value="volvo">Volvo</option>
+    {% for item in stock_dic%}
+        <table>
+            <li>
+                <option value="{{ item }}">{{ item }}</option>
+            </li>
+        </table>
+    {% endfor %}
+    </select>
+    <p>{{  }}</p>
+    <p class="Price">{{ shop_item.price }},{{ item}}:{{ stock_dic[item] }}</p>
+{% endblock %}

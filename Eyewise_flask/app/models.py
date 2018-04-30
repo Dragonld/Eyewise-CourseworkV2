@@ -84,7 +84,7 @@ class Shop(db.Model):
     brand = db.Column(db.String, index=True)
     sex = db.Column(db.String(10), index=True)
     price = db.Column(db.Float)
-    image = db.Column(db.String)
+    image = db.Column(db.String, default="images/default_img.png")
 
     def __repr__(self):
         return '<Shop: {}>'.format(self.item_name)
@@ -97,9 +97,16 @@ class Stock(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
 
 
+class Cart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
+    date_created = db.Column(db.DateTime)
+    total_cost = db.Column(db.Float)
+
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    cart_id = db.Column(db.Integer, db.ForeignKey("cart.id"))
     shop_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
 
     def __repr__(self):

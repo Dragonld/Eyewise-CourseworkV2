@@ -14,15 +14,15 @@
      <h1> Shop </h1>
     <table>
         <tr>
-            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Mens") }}">Men's</a></td> {#  <#Add link to routes for website pass arg User shit> #}
-            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Woman") }}">Women's</a></td>
+            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Male") }}">Men's</a></td> {#  <#Add link to routes for website pass arg User shit> #}
+            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Female") }}">Women's</a></td>
         </tr>
     </table>
     <ul class="Product_list">
     {% for item in shop %}
         <li>
-            <a href="#">
-                <img src={{ item.image }}>
+            <a href="{{ url_for("shop_item", shop_item_name=item.item_name) }}">
+                <img src={{url_for("static", filename=item.image) }}>
                 <h4 style="text-align: center">{{ item.item_name }}</h4>
                 <p class="price">{{ item.price }}</p>
             </a>

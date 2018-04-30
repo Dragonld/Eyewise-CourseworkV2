@@ -2,7 +2,7 @@ from app import app, db
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop
+from app.models import User, Shop, Stock
 from werkzeug.urls import url_parse
 from datetime import datetime
 
@@ -102,15 +102,19 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
+
 @app.route('/user/<username>')
 @login_required
 def user(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
-    return render_template('user.html', user=user, posts=posts)
+    if current_user.username != username:
+            return abort(404)
+    else:
+        user = User.query.filter_by(username=username).first_or_404()
+        posts = [
+            {'author': user, 'body': 'Test post #1'},
+            {'author': user, 'body': 'Test post #2'}
+        ]
+        return render_template('user.html', user=user, posts=posts)
 
 @app.before_request
 def before_request():
@@ -122,68 +126,77 @@ def before_request():
 @app.route('/user/edit_profile/<username>', methods=['GET', 'POST'])
 @login_required
 def edit_profile(username):
-    form = EditProfileForm(current_user.username, current_user.email)
-    if form.validate_on_submit():
-        current_user.username = form.username.data
-        current_user.first_name = form.first_name.data
-        current_user.last_name = form.last_name.data
-        current_user.email = form.email.data
-        current_user.about_me = form.about_me.data
-        current_user.telephone_num = form.telephone_num.data
-        current_user.address1 = form.address1.data
-        current_user.address2 = form.address2.data
-        current_user.town_city = form.town_city.data
-        current_user.postcode = form.postcode.data
-        db.session.commit()
-        flash('Your changes have been saved.')
-        return redirect(url_for('edit_profile', username=current_user.username))
-    elif request.method == 'GET':
-        form.username.data = current_user.username
-        form.first_name.data = current_user.first_name
-        form.last_name.data = current_user.last_name
-        form.email.data = current_user.email
-        form.about_me.data = current_user.about_me
-        form.telephone_num.data = current_user.telephone_num
-        form.address1.data = current_user.address1
-        form.address2.data = current_user.address2
-        form.town_city.data = current_user.town_city
-        form.postcode.data = current_user.postcode
-    return render_template('edit_profile.html', title='Edit Profile', form=form)
+    if current_user.username != username:
+            return abort(404)
+    else:
+        form = EditProfileForm(current_user.username, current_user.email)
+        if form.validate_on_submit():
+            current_user.username = form.username.data
+            current_user.first_name = form.first_name.data
+            current_user.last_name = form.last_name.data
+            current_user.email = form.email.data
+            current_user.about_me = form.about_me.data
+            current_user.telephone_num = form.telephone_num.data
+            current_user.address1 = form.address1.data
+            current_user.address2 = form.address2.data
+            current_user.town_city = form.town_city.data
+            current_user.postcode = form.postcode.data
+            db.session.commit()
+            flash('Your changes have been saved.')
+            return redirect(url_for('edit_profile', username=current_user.username))
+        elif request.method == 'GET':
+            form.username.data = current_user.username
+            form.first_name.data = current_user.first_name
+            form.last_name.data = current_user.last_name
+            form.email.data = current_user.email
+            form.about_me.data = current_user.about_me
+            form.telephone_num.data = current_user.telephone_num
+            form.address1.data = current_user.address1
+            form.address2.data = current_user.address2
+            form.town_city.data = current_user.town_city
+            form.postcode.data = current_user.postcode
+        return render_template('edit_profile.html', title='Edit Profile', form=form)
 
 
 @app.route("/user/edit_password/<username>", methods=["GET", "POST"])
 @login_required
-def change_password(usename):
-    form = ChangePasswordForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=current_user.username).first()
-        if user is None or not user.check_password(form.old_password.data):
-            flash("Invalid password")
-            return redirect(url_for('change_password', username=current_user.username))
-        user.set_password(form.new_password.data)
-        db.session.commit()
-    return render_template("change_password.html", title="Change password", form= form)
+def change_password(username):
+    if current_user.username != username:
+            return abort(404)
+    else:
+        form = ChangePasswordForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=current_user.username).first()
+            if user is None or not user.check_password(form.old_password.data):
+                flash("Invalid password")
+                return redirect(url_for('change_password', username=current_user.username))
+            user.set_password(form.new_password.data)
+            db.session.commit()
+        return render_template("change_password.html", title="Change password", form= form)
 
 
-@app.route("/Shop", methods=["GET", "POST"])
-@login_required
-def shop_main(shop_filter=""):
-    shop_filter = request.args.get(shop_filter)
-    if shop_filter=="Mens" or shop_filter=="Female":
+@app.route("/Shop/<shop_filter>", methods=["GET", "POST"])
+def shop_main(shop_filter):
+    if shop_filter=="Male" or shop_filter=="Female":
         shop = Shop.query.filter_by(sex=shop_filter).all()
-        print("Boo")
+    # elif shop_filter == 1:#colour stuff
+    #     for i in Stock.query.filter_by()
     else:
         shop = Shop.query.all()
-        print("OOF")
-    for i in shop:
-        print(i.item_name)
-    print(request.args.get(shop_filter))
     return render_template("shop_main.html", Title="Shop", shop=shop)
 
-@app.route("/Shop/<shop_item>", methods=["GET","POST"])
-@login_required
-def shop_item(shop_item):
-    return render_template("shop_item.html", Title="Shop item", shop_item=shop_item)
+
+@app.route("/Shop_item/<shop_item_name>", methods=["GET","POST"])
+def shop_item(shop_item_name):
+    dic1={}
+    item = Shop.query.filter_by(item_name=shop_item_name).first_or_404()
+    stock = Stock.query.all()
+    for i in stock:
+        if i.item_id == item.id:
+            dic1[i.colour] = i.quantity
+
+    return render_template("shop_item.html", Title="Shop item", shop_item=item, stock=stock, stock_dic=dic1)
+
 
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
