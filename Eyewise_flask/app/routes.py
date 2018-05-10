@@ -2,7 +2,7 @@ from app import app, db
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop, Stock
+from app.models import User, Shop, Stock, Appointments
 from werkzeug.urls import url_parse
 from datetime import datetime
 
@@ -48,8 +48,21 @@ def where_to_find():
 def make_appointment():
     form = MakeAppointmentForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        print(request.method)
+        user = User.query.filter_by(username=current_user.username).first()
+        print("OOF")
         user.total_num_app += 1
+        print(request.form["date_time_form"])
+        print("MOO")
+        print(form.practice.data, form.appointment_type.data, request.form["date_time_form"])
+        if form.appointment_type.data == "Eye_test":
+            optomotrist = True
+        else:
+            optomotrist = False
+        print(form.Date_time_input.data)
+        appointment = Appointments(practice=form.practice.data, user_id=user.id, need_optom=optomotrist, date_time="2018-12-12 00:00")
+        db.session.add(appointment)
+        print(appointment)
         db.session.commit()
         # Put code here to add the appointment to the database
         print('First name :: {}\nLast name :: {}\nemail :: {}'.format(form.first_name.data, form.last_name.data, form.email.data))
@@ -58,7 +71,26 @@ def make_appointment():
         form.first_name.data = current_user.first_name
         form.last_name.data = current_user.last_name
         form.email.data = current_user.email
-    return render_template("make_appointment.html", title="Appointment form", form=form)
+    dtnow = datetime.now()
+    n=dtnow.minute
+    if n < 30 and n != 0:
+        n = 30
+    elif n > 30:
+        n = 0
+    min_date_time = str(dtnow.date())+"T"+str(dtnow.hour)+":"+str(n)
+    if len(str(dtnow.month + 3))==1:
+        dtmaxmon = "0"+str(dtnow.month + 3)
+    else:
+        dtmaxmon = str(dtnow.month)
+    if len(str(dtnow.day))==1:
+        dtmaxday = "0"+str(dtnow.day)
+    else:
+        dtmaxday = str(dtnow.day)
+
+
+    max_date_time = str(dtnow.year)+"-"+dtmaxmon+"-"+dtmaxday+"T"+str(dtnow.hour)+":"+str(n)
+    print(min_date_time, max_date_time)
+    return render_template("make_appointment.html", form=form, min_date_time=min_date_time, max_date_time=max_date_time, title="Appointment form")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -91,10 +123,11 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(first_name=form.first_name.data,last_name= form.last_name.data,username=form.username.data,
-                    email=form.email.data,admin=False,telephone_num=form.telephone_num.data,address1=form.address1.data,
-                    address2=form.address2.data,town_city=form.town_city.data,postcode=form.postcode.data,total_num_app=0,
-                    app_missed=0,total_mon_spen=0)
+        user = User(first_name=form.first_name.data, last_name= form.last_name.data, username=form.username.data,
+                    email=form.email.data, telephone_num=form.telephone_num.data, address1=form.address1.data,
+                    address2=form.address2.data, town_city=form.town_city.data, postcode=form.postcode.data, total_num_app=0,
+                    app_missed=0, total_mon_spen=0, perc_app_attend=0.0, mon_per_appoint=0.0, role=0)
+        print(form.password.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -201,7 +234,8 @@ def shop_item(shop_item_name):
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
 def user_cart(username):
-    return render_template("shop_item.html", Title="Shop item", shop_item=shop_item)
+    return render_template("cart.html", Title="Cart", username=username)
+
 
 @app.route("/Super_secret_page", methods=["GET", "POST"])
 @login_required

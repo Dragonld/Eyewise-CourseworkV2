@@ -70,8 +70,6 @@ class Appointments(db.Model):
     need_optom = db.Column(db.Boolean)
     practice = db.Column(db.String)
     date_time = db.Column(db.DateTime, index=True, unique=True)
-    time = db.Column(db.Time, index=True)
-    date = db.Column(db.Date, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def __repr__(self):

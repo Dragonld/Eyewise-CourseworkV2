@@ -1,29 +1,71 @@
 {% extends "base/layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block head %}
+{#    <link rel="stylesheet" href="//c#}
+{#    ode.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">#}
+{#    <link rel="stylesheet" href="/resources/demos/style.css">#}
+{#    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>#}
+{#    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>#}
+    <script>
+    function confirm() { var conf = "Your appointment has been made";
+    var date_time_field = document.getElementById("date_time_field").value;
+    if (date_time_field === "" ){
+    alert("Please input an appointment date and time"); return false}
+    else {
+    $("#date_time_form").submit();
+    window.alert(conf)}
+    }
+    </script>
+{% endblock %}
 
 {% block body %}
-    <form action="" method="post">
-    {{ form.hidden_tag() }}
-    <p>
-        {{ form.first_name.label }}<br>
-        {{ form.first_name(size=32) }}<br>
-        {% for error in form.first_name.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.last_name.label }}<br>
-        {{ form.last_name(size=32) }}<br>
-        {% for error in form.last_name.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.email.label }}<br>
-        {{ form.email(size=32)}}<br>
-        {% for error in form.email.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>{{ form.submit() }}</p>
+    <form action="../routes.py" method="post" id="date_time_form">
+        <label>Appoiontment time</label><br>
+        <input  id="date_time_field" type="datetime-local" min={{ min_date_time }} max={{ max_date_time }} step="1800"><br>
+    </form>
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.first_name.label }}<br>
+            {{ form.first_name(size=32) }}<br>
+            {% for error in form.first_name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.last_name.label }}<br>
+            {{ form.last_name(size=32) }}<br>
+            {% for error in form.last_name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.email.label }}<br>
+            {{ form.email(size=32)}}<br>
+            {% for error in form.email.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.appointment_type(size=1) }}
+        </p>
+        <p>
+            {{ form.practice(size=1) }}
+        </p>
+    {#    <p>#}
+    {#        {{ form.date_time.label }}<br>#}
+    {#        {{ form.date_time(class_="dtpicker") }}#}
+    {#        {% for error in form.date_time.errors %}#}
+    {#        <span style="color: red;">[{{ error }}]</span>#}
+    {#        {% endfor %}#}
+    {#    </p>#}
+
+        <p onclick=confirm()>{{ form.submit() }}</p>
+{#        <p>#}
+{#            <input type="submit" value="Submit" onclick="confirm()"> {{ form.submit() }}#}
+{#        </p>#}
     </form>
 {% endblock %}
+

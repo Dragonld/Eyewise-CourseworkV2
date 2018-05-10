@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, TextAreaField, SubmitField, DateTimeField
+from wtforms import StringField, PasswordField, BooleanField, TextAreaField, SubmitField, DateTimeField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length
 from app.models import User
-from datetime import datetime
+# from datetime import datetime
 
 
 class LoginForm(FlaskForm):
@@ -16,7 +16,11 @@ class MakeAppointmentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('E-mail', validators=[DataRequired(), Email()])
-    date_time = DateTimeField("Appointment Date and Time", validators=[DataRequired()], min= datetime.now())
+    appointment_type = SelectField(
+        validators=[DataRequired()],
+        choices=[("eye_test","Eye test"), ("contact_check", "Contact lens check"),("glasses_fit","Glasses fit")])
+    practice = SelectField(choices=[("stourbridge","Stourbridge"),("telford","Telford")], validators=[DataRequired()])
+    #date_time = DateTimeField("Appointment Date and Time", validators=[DataRequired()], format=['%Y-%m-%d %H:%M'])
 
     submit = SubmitField('Book Appointment')
 
@@ -26,26 +30,19 @@ class RegistrationForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    address1 = StringField("Address 1")
-    address2 = StringField("Address 2")
-    town_city = StringField("Town/City")
-    postcode = StringField("Postcode")
+    address1 = StringField("Address 1", validators=[])
+    address2 = StringField("Address 2", validators=[])
+    town_city = StringField("Town/City", validators=[])
+    postcode = StringField("Postcode", validators=[])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     admin = 0
-    telephone_num = StringField("Telephone number", validators=[DataRequired])
-    total_num_app = 0
-    app_missed = 0
-    total_mon_spen = 0.0
-    perc_app_attend = 0.0
-    mon_per_appoint = 0.0
+    telephone_num = StringField("Telephone number", validators=[])
 
     submit = SubmitField('Register')
 
     def validate_username(self, username):
-        if username.data.startswith("Admin"):
-            raise ValidationError('Please use a different username.')
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('Please use a different username.')
@@ -94,3 +91,4 @@ class ChangePasswordForm(FlaskForm):
     new_password2 = PasswordField('Repeat new password', validators=[DataRequired(), EqualTo("new_password")])
     old_password = PasswordField('Old password', validators=[DataRequired()])
     submit = SubmitField("Confirm change")
+
