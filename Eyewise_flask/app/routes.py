@@ -2,8 +2,9 @@ from app import app, db
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop, Stock, Appointments
+from app.models import User, Shop, Stock, Appointments, Cart, Order
 from werkzeug.urls import url_parse
+import json
 from datetime import datetime
 
 
@@ -52,7 +53,8 @@ def make_appointment():
         user = User.query.filter_by(username=current_user.username).first()
         print("OOF")
         user.total_num_app += 1
-        print(request.form["date_time_form"])
+        date_time = request.form["date_time_field"]
+        return json.dumps(({'status':'OK','date_time':date_time,}))
         print("MOO")
         print(form.practice.data, form.appointment_type.data, request.form["date_time_form"])
         if form.appointment_type.data == "Eye_test":
@@ -234,7 +236,13 @@ def shop_item(shop_item_name):
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
 def user_cart(username):
-    return render_template("cart.html", Title="Cart", username=username)
+    order_list=[]
+    user = User.query.filter_by(username=username).first()
+    cart = Cart.query.filter_by(user_id=user.id).all()
+    orders = Order.query.filter_by(user_id=cart.id)
+    for x in orders:
+        order_list.append(x)
+    return render_template("cart.html", Title="Cart", username=username, order_list=order_list)
 
 
 @app.route("/Super_secret_page", methods=["GET", "POST"])
