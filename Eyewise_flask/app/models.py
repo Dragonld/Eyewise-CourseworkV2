@@ -17,6 +17,8 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String(64), index=True, unique=False)
     last_name = db.Column(db.String(64), index=True, unique=False)
     email = db.Column(db.String(120), index=True, unique=True)
+    about_me = db.Column(db.String(140))
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     telephone_num = db.Column(db.String(14), index=True)
     address1 = db.Column(db.String(64))
     address2 = db.Column(db.String(64))
@@ -51,8 +53,7 @@ class User(UserMixin, db.Model):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
             digest, size)
-    about_me = db.Column(db.String(140))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 
 class Post(db.Model):
@@ -69,7 +70,7 @@ class Appointments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     need_optom = db.Column(db.Boolean)
     practice = db.Column(db.String)
-    date_time = db.Column(db.DateTime, index=True, unique=True)
+    date_time = db.Column(db.String(20), index=True, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def __repr__(self):
@@ -98,7 +99,7 @@ class Stock(db.Model):
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
-    date_created = db.Column(db.DateTime)
+    date_time_created = db.Column(db.String(20))
     total_cost = db.Column(db.Float)
 
 
@@ -106,6 +107,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cart_id = db.Column(db.Integer, db.ForeignKey("cart.id"))
     shop_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
+    colour = db.Column(db.String(15))
 
     def __repr__(self):
         return '<order: {}>'.format(self.id)

@@ -1,5 +1,34 @@
 {% extends "base/shop_base.html" %}
+{% block head %}
+    <style>
+
+        .cart_items {text-align: center} td{width:20%; height: 20% }
+    </style>
+{% endblock %}
 
 {% block shop_body %}
-    <p>OOF {{ username }}</p>
+    <h1 style="text-align: center">{{ current_user.first_name }}'s Cart</h1>
+    <table width="100%" class="cart_items">
+    <tr>
+        <th>Image</th>
+        <th>Item name</th>
+        <th>Item Colour</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Total cost</th>
+    </tr>
+    {% for order in order_item_dic %}
+        <tr>
+            <td><img src="{{ url_for("static", filename=order_item_dic[order][0].image) }}"  height="20%"></td>
+            <td>{{ order_item_dic[order][0].item_name }}</td>
+            <td>{{ order_item_dic[order][3] }}</td>
+            <td>£{{ order_item_dic[order][0].price }}</td>
+            <td>{{ order_item_dic[order][1] }}</td>
+            <td>£{{ order_item_dic[order][2] }}</td>
+        </tr>
+    {% endfor %}
+    <tr>
+        <td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td><td>Total</td><td>£{{ total_cost }}</td>
+    </tr>
+    </table>
 {% endblock %}

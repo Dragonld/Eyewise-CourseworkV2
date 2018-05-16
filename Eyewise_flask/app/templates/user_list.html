@@ -1,0 +1,14 @@
+{% extends "base/layout.html" %}
+
+{% block body %}
+    {% for user in users %}
+    <p>
+        <a href="{{ url_for("user", username=user.username) }}">
+            {{ user.id }}-{{ user.username }}, {{ user.first_name }} {{ user.last_name }}
+        </a>
+    </p>
+    <p>
+        Stats - % Attend={{ user.perc_app_attend }}--- Average spent={{ user.mon_per_appoint }}
+    </p>
+    {% endfor %}
+{% endblock %}

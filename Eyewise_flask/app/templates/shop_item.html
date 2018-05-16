@@ -10,11 +10,19 @@
 
         function function1(stock_dic) {var e = document.getElementById("colour_selector");
         var text = e.options[e.selectedIndex].text;
-        if (text == "Colours") {document.getElementById("colour_stock").innerHTML = "";}
+        if (text === "Colours") {document.getElementById("colour_stock").innerHTML = "";}
         else {
-        var stock = stock_dic[text];
-        document.getElementById("colour_stock").innerHTML = stock;
+        document.getElementById("colour_stock").innerHTML = stock_dic[text];
         }}
+    </script>
+    <script>
+        function foo() {
+            {#$("#colour_selector").find('option').attr('selected',true);#}
+            window.alert("hey");
+            var value = document.getElementById("colour_selector").options[document.getElementById("colour_selector").selectedIndex].text;
+            $.post("{{ url_for("user_cart", username=current_user.username) }}", {value:value, thingy:{{shop_item.id}}});
+        }
+
     </script>
 {% endblock %}
 
@@ -25,23 +33,26 @@
         <br><br><br><br>
     </div>
     </div>
-    <form action="../routes.py", method="post", id="add_to_cart">
+    <p class="Price">{{ shop_item.price }}</p>
     <table style="width: 10%";>
         <tr>
             <td>
-                <select id="colour_selector" onchange="function1({{ stock_dic }})", style="font-size: 15px", >
-                    <option value="Colours", selected="Colours">Colours</option>
+                <form action="{{ url_for("user_cart", username=current_user.username) }}" method="post" id="add_to_cart">
+                    <select id="colour_selector" onchange="function1({{ stock_dic }})" style="font-size: 15px" form="add_to_cart">
+                    <option value="Colours" selected="Colours">Colours</option>
                     {% for item in stock_dic%}
                         <option value="{{ item }}" id="colour_option">{{ item }}</option> {# item = key #}
                     {% endfor %}
-                </select>
+                    </select>
+                    <p><input type="button" value="Add to cart" onclick="foo()"/></p>
+{#                    <p><button type="submit" value="add_to_cart" onclick="on_clicker()">Add to cart</button></p>#}
+                </form>
             </td>
+            <td>
+
             <td>
                 <p id = "colour_stock" style="font-size: 15px"></p>
             </td>
         </tr>
     </table>
-    <p class="Price">{{ shop_item.price }}</p>
-    <p><button type="submit", value="add_to_cart">Add to cart</button></p>
-    </form>
 {% endblock %}

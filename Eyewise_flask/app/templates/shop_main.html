@@ -20,8 +20,10 @@
      <h1> Shop </h1>
     <table>
         <tr>
-            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Male") }}">Men's</a></td> {#  <#Add link to routes for website pass arg User shit> #}
-            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="Female") }}">Women's</a></td>
+            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter="All") }}">All</a></td>
+            {% for filter in filter_list %}
+            <td class="filt_item"><a href="{{ url_for("shop_main",shop_filter=filter) }}">{{ filter }}</a></td>
+            {% endfor %}
         </tr>
     </table>
     <ul class="Product_list">

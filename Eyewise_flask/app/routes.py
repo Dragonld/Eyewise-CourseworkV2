@@ -1,5 +1,5 @@
 from app import app, db
-from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm
+from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm, AddMissedForm, AddMonForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Shop, Stock, Appointments, Cart, Order
@@ -53,26 +53,26 @@ def make_appointment():
         user = User.query.filter_by(username=current_user.username).first()
         print("OOF")
         user.total_num_app += 1
-        date_time = request.form["date_time_field"]
-        return json.dumps(({'status':'OK','date_time':date_time,}))
-        print("MOO")
-        print(form.practice.data, form.appointment_type.data, request.form["date_time_form"])
+        date = str(form.year.data + "-" + form.month.data + "-" + form.day.data)
+        time = str(form.hour.data + ":" + form.minute.data)
+        date_time = date+ " " +time
+        print(form.practice.data, form.appointment_type.data,date_time)
         if form.appointment_type.data == "Eye_test":
             optomotrist = True
         else:
             optomotrist = False
         print(form.Date_time_input.data)
-        appointment = Appointments(practice=form.practice.data, user_id=user.id, need_optom=optomotrist, date_time="2018-12-12 00:00")
-        db.session.add(appointment)
-        print(appointment)
-        db.session.commit()
+        # appointment = Appointments(practice=form.practice.data, user_id=user.id, need_optom=optomotrist, date_time="2018-12-12 00:00")
+        #db.session.add(appointment)
+        # print(appointment)
+        #db.session.commit()
         # Put code here to add the appointment to the database
-        print('First name :: {}\nLast name :: {}\nemail :: {}'.format(form.first_name.data, form.last_name.data, form.email.data))
         return redirect(url_for('home'))
     elif request.method == 'GET':
         form.first_name.data = current_user.first_name
         form.last_name.data = current_user.last_name
         form.email.data = current_user.email
+        form.year=datetime.now().year
     dtnow = datetime.now()
     n=dtnow.minute
     if n < 30 and n != 0:
@@ -92,7 +92,7 @@ def make_appointment():
 
     max_date_time = str(dtnow.year)+"-"+dtmaxmon+"-"+dtmaxday+"T"+str(dtnow.hour)+":"+str(n)
     print(min_date_time, max_date_time)
-    return render_template("make_appointment.html", form=form, min_date_time=min_date_time, max_date_time=max_date_time, title="Appointment form")
+    return render_template("make_appointment.html", form=form, current_year=datetime.now().year, title="Appointment form")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -128,10 +128,16 @@ def register():
         user = User(first_name=form.first_name.data, last_name= form.last_name.data, username=form.username.data,
                     email=form.email.data, telephone_num=form.telephone_num.data, address1=form.address1.data,
                     address2=form.address2.data, town_city=form.town_city.data, postcode=form.postcode.data, total_num_app=0,
-                    app_missed=0, total_mon_spen=0, perc_app_attend=0.0, mon_per_appoint=0.0, role=0)
+                    app_missed=0, total_mon_spen=0, perc_app_attend=100.0, mon_per_appoint=0.0, role=0)
         print(form.password.data)
+        #TODO remove above print
         user.set_password(form.password.data)
         db.session.add(user)
+        db.session.commit()
+        date = datetime.now().date()
+        time = str(datetime.now().hour) + ":" + str(datetime.now().minute)
+        new_cart = Cart(user_id=user.id, date_time_created=str(date) + " " + time, total_cost=0.0)
+        db.session.add(new_cart)
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
@@ -141,7 +147,7 @@ def register():
 @app.route('/user/<username>')
 @login_required
 def user(username):
-    if current_user.username != username:
+    if current_user.username != username and current_user.role == 0:
             return abort(404)
     else:
         user = User.query.filter_by(username=username).first_or_404()
@@ -212,13 +218,32 @@ def change_password(username):
 
 @app.route("/Shop/<shop_filter>", methods=["GET", "POST"])
 def shop_main(shop_filter):
-    if shop_filter=="Male" or shop_filter=="Female":
+    filter_list=[]
+    colours=[]
+    brands=[]
+    sexes=["Male", "Female"]
+    for sex in sexes:
+        filter_list.append(sex)
+    for item in Stock.query.all():
+        if item.colour not in colours:
+            colours.append(item.colour)
+            filter_list.append(item.colour)
+    for item in Shop.query.all():
+        if item.brand not in brands:
+            brands.append(item.brand)
+            filter_list.append(item.brand)
+    if shop_filter in sexes:
         shop = Shop.query.filter_by(sex=shop_filter).all()
-    # elif shop_filter == 1:#colour stuff
-    #     for i in Stock.query.filter_by()
+    elif shop_filter in colours:
+        shop = []
+        for item in Stock.query.filter_by(colour=shop_filter).all():
+            x = Shop.query.filter_by(id=item.item_id).first()
+            shop.append(x)
+    elif shop_filter in brands:
+        shop = Shop.query.filter_by(brand=shop_filter).all()
     else:
         shop = Shop.query.all()
-    return render_template("shop_main.html", Title="Shop", shop=shop)
+    return render_template("shop_main.html", Title="Shop", shop=shop, filter=shop_filter, filter_list=filter_list)
 
 
 @app.route("/Shop_item/<shop_item_name>", methods=["GET","POST"])
@@ -236,13 +261,31 @@ def shop_item(shop_item_name):
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
 def user_cart(username):
-    order_list=[]
+    if request.method == "POST":
+        jsonData = request.get_json()
+        print("MOO")
+        print(request.form)
+        print(request.form)
+        print(current_user)
+    print("WADDLE")
+    order_item_dic={}
+    total_cost=0
     user = User.query.filter_by(username=username).first()
-    cart = Cart.query.filter_by(user_id=user.id).all()
-    orders = Order.query.filter_by(user_id=cart.id)
-    for x in orders:
-        order_list.append(x)
-    return render_template("cart.html", Title="Cart", username=username, order_list=order_list)
+    cart = Cart.query.filter_by(user_id=user.id).first()
+    orders = Order.query.filter_by(cart_id=cart.id).all()
+    for order in orders:
+        x = Shop.query.filter_by(id=order.shop_id).first()
+        x = x.id
+        colour = order.colour
+        if x not in order_item_dic:
+            order_item_dic[str(x)+str(colour)] = (Shop.query.filter_by(id=x).first(), 1, Shop.query.filter_by(id=x).first().price, order.colour)
+        else:
+            quantity = order_item_dic[str(x)+colour][1]
+            quantity += 1
+            order_item_dic[str(x)+colour] = (Shop.query.filter_by(id=x).first(), quantity, (Shop.query.filter_by(id=x).first().price*quantity), order.colour)
+    for item in order_item_dic:
+        total_cost += order_item_dic[item][0].price * order_item_dic[item][1]
+    return render_template("cart.html", Title="Cart", username=username, order_item_dic=order_item_dic, Shop=Shop, user=user, cart=cart, total_cost=total_cost)
 
 
 @app.route("/Super_secret_page", methods=["GET", "POST"])
@@ -252,3 +295,51 @@ def admin_page():
             return abort(404)
     else:
         return render_template("admin_page.html", Title="Admin")
+
+
+@app.route("/user_list", methods=["GET", "POST"])
+@login_required
+def user_list():
+    if current_user.role == 0:
+        return 404
+    users = User.query.all()
+    for user in users:
+        print(user, user.total_num_app)
+        if user.total_num_app != 0:
+            print(user, "SHould be Susan")
+            user.perc_app_attend = 100-(user.app_missed/user.total_num_app)*100
+            user.mon_per_appoint = (user.total_mon_spen/user.total_num_app)
+        else:
+            user.perc_app_attend = 100
+            user.mon_per_appoint = 0
+        print(user, user.perc_app_attend, user.mon_per_appoint)
+        db.session.commit()
+    return render_template("user_list.html", users=users)
+
+
+@app.route("/user/add_missed", methods=["GET", "POST"])
+@login_required
+def add_missed():
+    if current_user.role == 0:
+        return abort(404)
+    form = AddMissedForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        user.app_missed += form.num_missed.data
+        db.session.commit()
+        flash("Change has been made")
+    return render_template("app_missed.html", form=form)
+
+
+@app.route("/user/add_mon", methods=["GET", "POST"])
+@login_required
+def add_mon():
+    if current_user.role == 0:
+        return abort(404)
+    form = AddMonForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        user.total_mon_spen += form.mon_spent.data
+        db.session.commit()
+        flash("Change has been made")
+    return render_template("add_mon.html", form=form)
