@@ -377,7 +377,7 @@ def user_list():
     for user in users:
         if user.total_num_app != 0:
             user.perc_app_attend = 100-(user.app_missed/user.total_num_app)*100
-            user.mon_per_appoint = (user.total_mon_spen/user.total_num_app)
+            user.mon_per_appoint = (user.total_mon_spen/(user.total_num_app-user.app_missed))
         else:
             user.perc_app_attend = 100
             user.mon_per_appoint = 0
