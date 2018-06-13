@@ -19,19 +19,23 @@ class MakeAppointmentForm(FlaskForm):
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     appointment_type = SelectField(
         validators=[DataRequired()],
-        choices=[("eye_test","Eye test"), ("contact_check", "Contact lens check"),("glasses_fit","Glasses fit")])
-    practice = SelectField(choices=[("stourbridge","Stourbridge"),("telford","Telford")], validators=[DataRequired()])
+        choices=[("Eye test","Eye test"), ("Contact lens check", "Contact lens check"),("Glasses fitting","Glasses fitting")])
+    practice = SelectField(choices=[("Stourbridge","Stourbridge"),("Telford","Telford")], validators=[DataRequired()])
     # date_time = DateTimeField("Appointment Date and Time", validators=[])
     # date = DateField("Appointment Date", validators=[])
-    year = StringField(validators=[DataRequired()], default=datetime.now().year)
-    month = SelectField(validators=[DataRequired()], choices=[(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10),(11,11),(12,12)])
+    year = StringField(validators=[DataRequired()], default=str(datetime.now().year))
+    month = SelectField(validators=[DataRequired()], choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),
+                                                              ('6','6'),('7','7'),('8','8'),('9','9'),('10','10'),
+                                                              ('11','11'),('12','12')])
     day = SelectField(validators=[DataRequired()],
-                      choices=[(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10),(11,11),(12,12),(13,13),
-                               (14,14),(15,15),(16,16),(17,17),(18,18),(19,19),(20,20),(21,21),(22,22),(23,23),(24,24),
-                               (25,25), (26,26),(27,27),(28,28),(29,29),(30,30),(31,31)])
+                      choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),
+                               ('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15'),
+                               ('16','16'),('17','17'),('18','18'),('19','19'),('20','20'),('21','21'),('22','22'),
+                               ('23','23'),('24','24'),('25','25'), ('26','26'),('27','27'),('28','28'),('29','29'),
+                               ('30','30'),('31','31')])
     hour = SelectField(validators=[DataRequired()],
-                       choices=[(8,8),(9,9),(10,10),(11,11),(12,12),(13,13),(14,14),(15,15)])
-    minute = SelectField(validators=[DataRequired()], choices=[(00,00),(30,30)])
+                       choices=[('8','8'),('9','9'),('10','10'),('11','11'),('12','12'),('13','13'),('14','14'),('15','15')])
+    minute = SelectField(validators=[DataRequired()], choices=[('00','00'),('30','30')])
 
 
     submit = SubmitField('Book Appointment')
@@ -114,3 +118,16 @@ class AddMonForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     mon_spent = FloatField("Money spent", validators=[DataRequired()])
     submit = SubmitField("Submit changes")
+
+
+class ChangeRoleForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    new_role = IntegerField("Role", validators=[DataRequired()])
+    submit = SubmitField("Submit changes")
+
+
+class AddStockForm(FlaskForm):
+    item_name = StringField("Item name", validators=[DataRequired()])
+    colour = StringField("Colour", validators=[DataRequired()])
+    stock = IntegerField("Added stock", validators=[DataRequired()])
+    submit = SubmitField("Add stock")

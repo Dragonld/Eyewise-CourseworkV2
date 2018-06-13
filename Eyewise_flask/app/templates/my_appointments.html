@@ -1,0 +1,22 @@
+{% extends "base/layout.html" %}
+{% block head %}
+    <style>
+        .app_table {width:100%} td {width: 17%}
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h1>Appointments</h1>
+    <table class="app_table">
+    {% for appointment in appointments %}
+    <tr>
+        <td>{{ appointment[1].username }}</td>
+        <td>{{ appointment[1].first_name }}</td>
+        <td>{{ appointment[1].last_name }}</td>
+        <td>{{ appointment[0].practice }}</td>
+        <td>{{ appointment[0].date_time }}</td>
+        <td>{{ appointment[0].appointment_type }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

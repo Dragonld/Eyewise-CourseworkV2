@@ -1,0 +1,28 @@
+{% extends "base/layout.html" %}
+
+{% block body %}
+    <form action="" method="post">
+    <p>
+        {{ form.item_name.label }}<br>
+        {{ form.item_name(size=32) }}
+        {% for error in form.item_name.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.colour.label }}<br>
+        {{ form.colour(size=32) }}
+        {% for error in form.colour.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.stock.label }}<br>
+        {{ form.stock(size=32) }}
+        {% for error in form.stock.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

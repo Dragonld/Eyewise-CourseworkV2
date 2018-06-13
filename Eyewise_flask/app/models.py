@@ -68,8 +68,9 @@ class Post(db.Model):
 
 class Appointments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    appointment_type = db.Column(db.String(20))
     need_optom = db.Column(db.Boolean)
-    practice = db.Column(db.String)
+    practice = db.Column(db.String(20))
     date_time = db.Column(db.String(20), index=True, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
@@ -81,7 +82,7 @@ class Shop(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String, index=True)
     brand = db.Column(db.String, index=True)
-    sex = db.Column(db.String(10), index=True)
+    age = db.Column(db.String(10), index=True)
     price = db.Column(db.Float)
     image = db.Column(db.String, default="images/default_img.png")
 

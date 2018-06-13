@@ -12,15 +12,16 @@
         var text = e.options[e.selectedIndex].text;
         if (text === "Colours") {document.getElementById("colour_stock").innerHTML = "";}
         else {
-        document.getElementById("colour_stock").innerHTML = stock_dic[text];
+        document.getElementById("colour_stock").innerHTML =("Stock =" + stock_dic[text]);
         }}
     </script>
     <script>
-        function foo() {
+        function submit_it() {
             {#$("#colour_selector").find('option').attr('selected',true);#}
-            window.alert("hey");
-            var value = document.getElementById("colour_selector").options[document.getElementById("colour_selector").selectedIndex].text;
-            $.post("{{ url_for("user_cart", username=current_user.username) }}", {value:value, thingy:{{shop_item.id}}});
+            window.alert("Item has been added to your cart");
+            var e = document.getElementById("colour_selector");
+            var value = e.options[e.selectedIndex].text;
+            $.post("{{ url_for("user_cart", username=current_user.username) }}", {colour:value, item_id:{{shop_item.id}}});
         }
 
     </script>
@@ -37,22 +38,21 @@
     <table style="width: 10%";>
         <tr>
             <td>
-                <form action="{{ url_for("user_cart", username=current_user.username) }}" method="post" id="add_to_cart">
-                    <select id="colour_selector" onchange="function1({{ stock_dic }})" style="font-size: 15px" form="add_to_cart">
-                    <option value="Colours" selected="Colours">Colours</option>
-                    {% for item in stock_dic%}
-                        <option value="{{ item }}" id="colour_option">{{ item }}</option> {# item = key #}
-                    {% endfor %}
-                    </select>
-                    <p><input type="button" value="Add to cart" onclick="foo()"/></p>
-{#                    <p><button type="submit" value="add_to_cart" onclick="on_clicker()">Add to cart</button></p>#}
-                </form>
+                <select id="colour_selector" onchange="function1({{ stock_dic }})" style="font-size: 15px" form="add_to_cart">
+                <option value="Colours" selected="Colours">Colours</option>
+                {% for item in stock_dic%}
+                    <option value="{{ item }}" id="colour_option">{{ item }}</option> {# item = key #}
+                {% endfor %}
+                </select>
             </td>
             <td>
 
             <td>
                 <p id = "colour_stock" style="font-size: 15px"></p>
             </td>
+        </tr>
+        <tr>
+            <td><input type="button" value="Add to cart" onclick="submit_it()"/></td>
         </tr>
     </table>
 {% endblock %}

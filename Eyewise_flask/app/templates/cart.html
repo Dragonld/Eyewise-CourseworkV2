@@ -1,7 +1,7 @@
 {% extends "base/shop_base.html" %}
 {% block head %}
     <style>
-
+        img {width: 240px; height: 120px}
         .cart_items {text-align: center} td{width:20%; height: 20% }
     </style>
 {% endblock %}
@@ -19,12 +19,13 @@
     </tr>
     {% for order in order_item_dic %}
         <tr>
-            <td><img src="{{ url_for("static", filename=order_item_dic[order][0].image) }}"  height="20%"></td>
+            <td><img src="{{ url_for("static", filename=order_item_dic[order][0].image) }}"></td>
             <td>{{ order_item_dic[order][0].item_name }}</td>
             <td>{{ order_item_dic[order][3] }}</td>
             <td>£{{ order_item_dic[order][0].price }}</td>
             <td>{{ order_item_dic[order][1] }}</td>
             <td>£{{ order_item_dic[order][2] }}</td>
+            <td><a href="{{ url_for("remove_item", item_id=(order_item_dic[order][0].id), colour=(order_item_dic[order][3]), cart_id=(cart.id)) }}">Remove</a></td>
         </tr>
     {% endfor %}
     <tr>

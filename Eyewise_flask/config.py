@@ -12,3 +12,5 @@ class Config(object):
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['your-email@example.com']
+    SPOTIFY_ID = "8200001dc049483a9eee57b477832451"
+    SPOTIFY_SECRET= "e88026aa9a494f7f949bc1d473406f32"
