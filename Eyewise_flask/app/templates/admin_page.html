@@ -1,102 +1,15 @@
 {% extends "base/layout.html" %}
 
 {% block head %}
-    <style>
-        /* The Modal (background) */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(173,216,230,0.2);
-        }
-
-        /* Modal Content/Box */
-        .modal-content {
-            position: fixed;
-            bottom: 0;
-            background-color: burlywood;
-            {#margin: 15% auto; /* 15% from the top and centered */#}
-            {#padding: 20px;#}
-            height: 35%;
-            border: 1px solid #888;
-            width: 100%; /* Could be more or less, depending on screen size */
-            animation-name: animatetop;
-            animation-duration: 0.4s;
-        }
-
-        /* The Close Button */
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        @-webkit-keyframes animatetop {
-            from {bottom:-300px; opacity:0}
-            to {bottom:0; opacity:1}
-        }
-    </style>
-    <script>
-    window.onload = function() {
-        // Get the modal
-        var modal = document.getElementById('myModal');
-
-        // Get the button that opens the modal
-        var btn = document.getElementById("myBtn");
-
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
-
-        // When the user clicks the button, open the modal
-        btn.onclick = function () {
-            modal.style.display = "block";
-        };
-
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function () {
-            modal.style.display = "none";
-        };
-
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function (event) {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        }
-    }
-    </script>
 {% endblock %}
 
 {% block body %}
-     <h1> This is an admin page </h1>
+    <h1> This is an admin page </h1>
     <p><em>This is a page admins should be able to see this.</em></p>
     <p><a class="nav-link" href="{{ url_for('user_list') }}">User list</a></p>
     {% if current_user.role >= 3 %}
-    <p><a href="{{ url_for("change_role" )}}">Change a user's role</a></p>
+        <p><a href="{{ url_for("change_role" )}}">Change a user's role</a></p>
+        <p><a href="{{ url_for("optom_dates") }}">Add where the optom will be</a></p>
     {% endif %}
-    <button id="myBtn">Open Modal</button>
-
-<!-- The Modal -->
-    <div id="myModal" class="modal">
-
-  <!-- Modal content -->
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p>This is where the AI will go</p>
-        </div>
-
-    </div>
 
 {% endblock %}

@@ -8,12 +8,6 @@
         .filt_item {padding-right: 5px; padding-left: 5px; padding-bottom: 10px;}
     </style>
 
-    <script>
-        function filter(filter_choice) {
-
-        }
-    </script>
-
 {% endblock %}
 
 {% block shop_body %}
@@ -38,4 +32,7 @@
     {# Some stuff about querying the shop database #}
     {% endfor %}
     </ul>
+    {% if current_user.role == 3  %}
+        <a href="{{ url_for("add_stock") }}">Add stock to items</a>
+    {% endif %}
 {% endblock %}

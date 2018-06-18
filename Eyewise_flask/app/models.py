@@ -114,6 +114,14 @@ class Order(db.Model):
         return '<order: {}>'.format(self.id)
 
 
+class OptomThere(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, index=True)
+    month = db.Column(db.Integer, index=True)
+    day = db.Column(db.Integer, index=True)
+    practice = db.Column(db.String(20), index=True)
+
+
 @login.user_loader
 def load_user(i):
     return User.query.get(int(i))

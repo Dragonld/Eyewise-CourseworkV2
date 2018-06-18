@@ -1,10 +1,10 @@
 from app import app, db
 from config import Config
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm,\
-    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm
+    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop, Stock, Appointments, Cart, Order
+from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere
 from werkzeug.urls import url_parse
 from datetime import datetime
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -13,6 +13,10 @@ import threading
 import spotipy
 import time
 
+#TODO add thread that deletes year old appointments
+#TODO add a cancel appointment option
+#TODO make the website show charge fees in the appointment has been made flash
+#TODO create a logo
 
 class Thread_it:
     def __init__(self):
@@ -102,7 +106,7 @@ def make_appointment():
         time = str(form.hour.data + ":" + form.minute.data)
         date_time = date+ " " +time
         print(form.practice.data, form.appointment_type.data,date_time)
-        if form.appointment_type.data == "eye_test":
+        if form.appointment_type.data == "Eye test":
             optomotrist = True
         else:
             optomotrist = False
@@ -114,12 +118,18 @@ def make_appointment():
             print("Attempt at past made")
             return redirect(url_for("make_appointment"))
         try:
-            appointment = Appointments(practice=form.practice.data, appointment_type=form.appointment_type.data, user_id=user.id, need_optom=optomotrist, date_time=date_time)
-            db.session.add(appointment)
-            print(appointment)
-            db.session.commit()
-            flash("Appointment has been made")
+            print(optomotrist, form.practice.data, OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first())
+            if optomotrist == True and form.practice.data!=OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first().practice:
+                flash("We are sorry for the inconvenience but the Optomotrist is not in the practice on the day you selected")
+                return redirect(url_for("make_appointment"))
+            else:
+                appointment = Appointments(practice=form.practice.data, appointment_type=form.appointment_type.data, user_id=user.id, need_optom=optomotrist, date_time=date_time)
+                db.session.add(appointment)
+                print(appointment)
+                db.session.commit()
+                flash("Appointment has been made") #Todo prices an stuff
         except:
+
             flash("The time slot you have requested is unavailable")
             return redirect(url_for("make_appointment"))
         return redirect(url_for('home'))
@@ -328,17 +338,16 @@ def user_cart(username):
         colour = request.form.getlist("colour")[0]
         shop = Shop.query.filter_by(id=item_id).first()
         stock = Stock.query.filter_by(item_id=shop.id, colour=colour).first()
-        current_stock = stock.quantity
-        if current_stock > 0:
+        if stock.quantity > 0:
             new_order = Order(cart_id=cart.id, shop_id=shop.id, colour=colour)
-            stock.quantity = current_stock - 1
+            stock.quantity -= 1
             db.session.add(new_order)
             db.session.commit()
             flash("Item has been added")
+            return redirect("shop_item.html", shop_item_name=shop.item_name)
         else:
             flash("This product is out of stock")
             return redirect("shop_item.html", shop_item_name=shop.item_name)
-    print("WADDLE")
     order_item_dic={}
     total_cost=0
     orders = Order.query.filter_by(cart_id=cart.id).all()
@@ -354,7 +363,6 @@ def user_cart(username):
             order_item_dic[str(x)+colour] = (Shop.query.filter_by(id=x).first(), quantity, (Shop.query.filter_by(id=x).first().price*quantity), order.colour)
     for item in order_item_dic:
         total_cost += order_item_dic[item][0].price * order_item_dic[item][1]
-    print("Waddle waddle")
     cart.total_cost = total_cost
     db.session.commit()
     return render_template("cart.html", Title="Cart", username=username, order_item_dic=order_item_dic, Shop=Shop, user=user, cart=cart, total_cost=total_cost)
@@ -483,4 +491,24 @@ def add_stock():
         stock.quantity += form.stock.data
         db.session.commit()
     return render_template("add_stock.html", title="Add stock", form=form)
+
+
+@app.route("/Optom_dates", methods=["GET", "POST"])
+@login_required
+def optom_dates():
+    if current_user.role < 3 or current_user.is_anonymous:
+        return abort(404)
+    form = OptomForm()
+    if form.validate_on_submit():
+        day = form.day.data
+        month = form.month.data
+        year = form.year.data
+        practice = form.practice.data
+        info = OptomThere(day=day, month=month, year=year, practice=practice)
+        db.session.add(info)
+        db.session.commit()
+        flash("Data has been added")
+    else:
+        print(form.errors)
+    return render_template("optom_dates.html", title="Optom_dates", form=form)
 

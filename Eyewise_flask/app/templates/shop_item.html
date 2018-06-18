@@ -18,11 +18,12 @@
     <script>
         function submit_it() {
             {#$("#colour_selector").find('option').attr('selected',true);#}
-            window.alert("Item has been added to your cart");
             var e = document.getElementById("colour_selector");
             var value = e.options[e.selectedIndex].text;
+            if (value !== "Colours") {
+             window.alert("Item has been added to your cart");
             $.post("{{ url_for("user_cart", username=current_user.username) }}", {colour:value, item_id:{{shop_item.id}}});
-        }
+        }}
 
     </script>
 {% endblock %}

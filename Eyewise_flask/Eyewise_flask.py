@@ -20,4 +20,3 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0")
 
 #Flask mega tutorial has been used
-#TODO Get submit to work

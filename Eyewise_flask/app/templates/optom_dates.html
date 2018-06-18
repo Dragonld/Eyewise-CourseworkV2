@@ -1,0 +1,17 @@
+{% extends "base/layout.html" %}
+
+{% block body %}
+    <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        Date(dd/mm/yyyy) : {{ form.day(size=1) }}-{{ form.month(size=1) }}-{{ form.year }}
+    </p>
+    <p>Is optom there?<br>
+        {{ form.practice(size=1) }}
+        {% for error in form.practice.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
