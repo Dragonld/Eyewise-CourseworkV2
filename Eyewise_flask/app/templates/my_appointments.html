@@ -16,6 +16,7 @@
         <td>{{ appointment[0].practice }}</td>
         <td>{{ appointment[0].date_time }}</td>
         <td>{{ appointment[0].appointment_type }}</td>
+        <td><a href={{ url_for("remove_appointment", user_id=appointment[1].id, appointment_id=appointment[0].id) }}>Remove appointment</a></td>
     </tr>
     {% endfor %}
     </table>

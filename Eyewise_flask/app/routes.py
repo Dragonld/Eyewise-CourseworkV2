@@ -14,7 +14,7 @@ import spotipy
 import time
 
 #TODO add thread that deletes year old appointments
-#TODO add a cancel appointment option
+#TODONE add a cancel appointment option
 #TODO make the website show charge fees in the appointment has been made flash
 #TODO create a logo
 
@@ -25,6 +25,13 @@ class Thread_it:
         thread.start()  # Start the execution
 
     def run(self):
+        for appointment in Appointments.query.all():
+            print(appointment.date_time[:4])
+            if int(appointment.date_time[:4])>datetime.now().year-1:
+                print("YAER WORK")
+                if appointment.date_time[5:7]==datetime.now().month:
+                    print("Month work")#TODO Make this work
+
         token = SpotifyClientCredentials(client_id= Config.SPOTIFY_ID, client_secret=Config.SPOTIFY_SECRET)
         album_list =[]
         list_list=[]
@@ -102,7 +109,11 @@ def make_appointment():
             flash("A user with your data cannot be found")
         print("OOF")
         user.total_num_app += 1
-        date = str(form.year.data + "-" + form.month.data + "-" + form.day.data)
+        if len(form.month.data)==1:
+            month = "0" + form.month.data
+        else:
+            month=form.month.data
+        date = str(form.year.data + "-" + month+ "-" + form.day.data)
         time = str(form.hour.data + ":" + form.minute.data)
         date_time = date+ " " +time
         print(form.practice.data, form.appointment_type.data,date_time)
@@ -456,6 +467,9 @@ def my_appointments(username):
 @login_required
 def remove_item(item_id, colour, cart_id):
     cart = Cart.query.filter_by(id=cart_id).first()
+    if current_user.id != cart.user_id:
+        flash("You do not have access to this page")
+        return redirect(url_for("home"))
     item = Shop.query.filter_by(id=item_id).first()
     stock = Stock.query.filter_by(item_id=item_id, colour=colour).first()
     order = Order.query.filter_by(cart_id=cart.id, shop_id=item.id, colour=colour).first()
@@ -463,6 +477,18 @@ def remove_item(item_id, colour, cart_id):
     db.session.delete(order)
     db.session.commit()
     return redirect(url_for("user_cart", username=current_user.username))
+
+@app.route("/Removing/ashjafhkajf34fhdh6fakjh7hjadfh<user_id>acsuhh76sajh<appointment_id>")
+@login_required
+def remove_appointment(user_id, appointment_id):
+    if current_user.id != user_id and current_user.role !=3:
+        flash("You do not have access to this page")
+        return redirect(url_for("home"))
+    user = User.query.filter_by(id=user_id).first()
+    appointment = Appointments.query.filter_by(id=appointment_id).first()
+    db.session.delete(appointment)
+    user.total_num_app -= 1
+    db.session.commit()
 
 
 @app.route("/Change_role", methods=["GET", "POST"])
