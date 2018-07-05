@@ -4,19 +4,27 @@ from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProf
     AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere
+from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp
+from spotipy.oauth2 import SpotifyClientCredentials
 from werkzeug.urls import url_parse
 from datetime import datetime
-from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 import threading
+import smtplib
 import spotipy
 import time
 
-#TODO add thread that deletes year old appointments
+#TODONEeletes year old appointments
 #TODONE add a cancel appointment option
 #TODO make the website show charge fees in the appointment has been made flash
 #TODO create a logo
+#TODO add search to shop if really wanted
+
+Q1=
+A1=
+Q2=
+A2=
+
 
 class Thread_it:
     def __init__(self):
@@ -25,28 +33,20 @@ class Thread_it:
         thread.start()  # Start the execution
 
     def run(self):
-        for appointment in Appointments.query.all():
-            print(appointment.date_time[:4])
-            if int(appointment.date_time[:4])>datetime.now().year-1:
-                print("YAER WORK")
-                if appointment.date_time[5:7]==datetime.now().month:
-                    print("Month work")#TODO Make this work
+        # msg = "YOUR MESSAGE!"
+        # Config.server.sendmail("YOUR EMAIL ADDRESS", "THE EMAIL ADDRESS TO SEND TO", msg)  # TODO add email stuff
+        # Config.server.quit()
 
-        token = SpotifyClientCredentials(client_id= Config.SPOTIFY_ID, client_secret=Config.SPOTIFY_SECRET)
-        album_list =[]
-        list_list=[]
-        elevator_uri = 'spotify:artist:6aIG9cUZLDobp6suRM0vRL'
-        spotify = spotipy.Spotify(client_credentials_manager=token)
-        results = spotify.artist_top_tracks(elevator_uri)
-        results = spotify.albums(["25GFQ04IGjmMnhW8O2Cz99", "47EIoHKC4M7RLL5pFWhfkd", "1ghDKd1sMvQ8k43e9kdelv", "15aKusaZoy3cGNXdelDNqJ"])
-        previews=[]
-        for album in results["albums"]:
-            album_list.append(album)
+        while True:
+            for appointment in Appointments.query.all():
+                if int(appointment.date_time[:4])<datetime.now().year+1:
+                    if int(appointment.date_time[5:7])==datetime.now().month:
+                        if int(appointment.date_time[8:10])==datetime.now().day:
+                            archapp = ArchiveApp (user_id=appointment.user_id, practice=appointment.practice, date_time=appointment.date_time, appointment_type=appointment.appointment_type)
+                            db.session.delete(appointment)
+                            db.session.add(archapp)
+                            db.session.commit()
 
-        for album in results["albums"]:
-            for thing in album["tracks"]["items"]:
-                print(thing["preview_url"])
-                previews.append(thing["preview_url"])
 
 
         # while True:
@@ -113,7 +113,11 @@ def make_appointment():
             month = "0" + form.month.data
         else:
             month=form.month.data
-        date = str(form.year.data + "-" + month+ "-" + form.day.data)
+        if len(form.day.data)==1:
+            day = "0" + form.day.data
+        else:
+            day=form.day.data
+        date = str(form.year.data + "-" + month+ "-" + day)
         time = str(form.hour.data + ":" + form.minute.data)
         date_time = date+ " " +time
         print(form.practice.data, form.appointment_type.data,date_time)
@@ -127,6 +131,15 @@ def make_appointment():
                 or int(form.day.data)<=datetime.now().day and int(form.month.data)==datetime.now().month and int(form.year.data)==datetime.now().year:
             flash("Appointments cannot be in the past")
             print("Attempt at past made")
+            return redirect(url_for("make_appointment"))
+        if form.month.data=="2" and form.day.data=="30":
+            flash("February does not have 30 days")
+            return redirect(url_for("make_appointment"))
+        if form.month.data==("2" or "4" or "6" or "9" or "11") and form.day.data == "31":
+            flash("Your selected month does not contain 31 days")
+            return redirect(url_for("make_appointment"))
+        if int(form.year.data)%4 != 0 and form.month.data == "2" and form.day.data == "29":
+            flash("Your selected year is not a leap year so February only has 28 days")
             return redirect(url_for("make_appointment"))
         try:
             print(optomotrist, form.practice.data, OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first())
@@ -496,13 +509,16 @@ def remove_appointment(user_id, appointment_id):
 def change_role():
     if current_user.role < 3 or current_user.is_anonymous:
         return abort(404)
+    user_role_dic = {}
     form = ChangeRoleForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         user.role = form.new_role.data
         db.session.commit()
         flash(user.username + "is now role" + str(user.role))
-    return render_template("change_role.html", title="change roll", form=form, )
+    for user in User.query.all():
+        user_role_dic[user.id] = (user.username, user.first_name, user.last_name, user.role)
+    return render_template("change_role.html", title="change role", form=form, user_role_dic=user_role_dic)
 
 
 @app.route("/Add_stock", methods=["GET", "POST"])
@@ -512,11 +528,23 @@ def add_stock():
         return abort(404)
     form = AddStockForm()
     if form.validate_on_submit():
-        shop = Shop.query.filter_by(item_name=form.item_name.data).first()
-        stock = Stock.query.filter_by(item_id=shop.id, colour=form.colour.data).first()
+        stock = Stock.query.filter_by(item_id=form.id.data, colour=form.colour.data).first()
         stock.quantity += form.stock.data
+        if stock.quantity < 0:
+            flash("You cannot have fewer tha  0")
+            return redirect(url_for("add_stock"))
         db.session.commit()
-    return render_template("add_stock.html", title="Add stock", form=form)
+        return redirect(url_for("add_stock"))
+    else:
+        print(form.errors)
+    item_stock = {} #id,colour--id, name, colour, stock
+    shop = Shop.query.all()
+    stock = Stock.query.all()
+    for item in shop:
+        tem_sto= Stock.query.filter_by(item_id=item.id).all()
+        for s in tem_sto:
+            item_stock[str(item.id)+str(s.colour)] = [item.id, item.item_name, s.colour, s.quantity]
+    return render_template("add_stock.html", title="Add stock", form=form, item_stock=item_stock)
 
 
 @app.route("/Optom_dates", methods=["GET", "POST"])

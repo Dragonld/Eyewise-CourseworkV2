@@ -1,11 +1,13 @@
 {% extends "base/layout.html" %}
 
 {% block body %}
+    <div style="float: left; width: 50%;">
     <form action="" method="post">
+    {{ form.hidden_tag() }}
     <p>
-        {{ form.item_name.label }}<br>
-        {{ form.item_name(size=32) }}
-        {% for error in form.item_name.errors %}
+        {{ form.id.label }}<br>
+        {{ form.id(size=32) }}
+        {% for error in form.id.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
@@ -25,4 +27,24 @@
     </p>
     <p>{{ form.submit() }}</p>
     </form>
+    </div>
+
+    <div style="float: right; width: 50%;">
+    <table class="text-center" style="width: 100%">
+    <tr>
+        <th>Item ID</th>
+        <th>Item name</th>
+        <th>Item colour</th>
+        <th>Item stock</th>
+    </tr>
+    {% for item in item_stock %}
+        <tr>
+            <td>{{ item_stock[item][0] }}</td>
+            <td>{{ item_stock[item][1] }}</td>
+            <td>{{ item_stock[item][2] }}</td>
+            <td>{{ item_stock[item][3] }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+    </div>
 {% endblock %}

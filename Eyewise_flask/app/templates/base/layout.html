@@ -64,13 +64,13 @@
         var def_text = "<p>This is where the AI will go</p><p>List of links (question will be link text) to help pages</p><button type='button' id='trialquest' onclick='fun1()'>Open the HTML</button>";
 
         function fun1 () {
-             $("#modal-change")[0].innerHTML = ("<p>You're not gonna do well</p> <button type='button' id='home_butt'>Back to home</button>");
+             $("#modal-change")[0].innerHTML = ("<p>You're not gonna do well</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
         };
         function homebutt () {
             $("#modal-change")[0].innerHTML = def_text;
         };
     window.onload = function() {
-
+        {#TODO Add the help links#}
         // Get the modal
         var modal = document.getElementById('myModal');
 
@@ -102,9 +102,6 @@
 
         var but1 = document.getElementById("trialquest");
         var but2 = document.getElementById("home_butt");
-        but1.onclick = function () {
-            $("#modal-change")[0].innerHTML = ("<p>You're not gonna do well</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
-        };
 
 
     }

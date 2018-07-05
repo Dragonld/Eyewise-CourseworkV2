@@ -127,7 +127,7 @@ class ChangeRoleForm(FlaskForm):
 
 
 class AddStockForm(FlaskForm):
-    item_name = StringField("Item name", validators=[DataRequired()])
+    id= IntegerField("Item ID", validators=[DataRequired()])
     colour = StringField("Colour", validators=[DataRequired()])
     stock = IntegerField("Added stock", validators=[DataRequired()])
     submit = SubmitField("Add stock")

@@ -68,11 +68,11 @@ class Post(db.Model):
 
 class Appointments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    appointment_type = db.Column(db.String(20))
+    appointment_type = db.Column(db.String(20), index=True)
     need_optom = db.Column(db.Boolean)
-    practice = db.Column(db.String(20))
+    practice = db.Column(db.String(20), index=True)
     date_time = db.Column(db.String(20), index=True, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
 
     def __repr__(self):
         return '<Appointment: {}>'.format(self.date_time)
@@ -120,6 +120,14 @@ class OptomThere(db.Model):
     month = db.Column(db.Integer, index=True)
     day = db.Column(db.Integer, index=True)
     practice = db.Column(db.String(20), index=True)
+
+
+class ArchiveApp(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
+    practice = db.Column(db.String(20), index=True)
+    date_time = db.Column(db.String(20), index=True, unique=True)
+    appointment_type = db.Column(db.String(20), index=True)
 
 
 @login.user_loader

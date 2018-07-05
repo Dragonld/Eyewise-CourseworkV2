@@ -1,7 +1,9 @@
 {% extends "base/layout.html" %}
 
 {% block body %}
+    <div style="float: left; width: 50%">
     <form action="" method="post">
+    {{ form.hidden_tag() }}
     <p>
         {{ form.username.label }}<br>
         {{ form.username(size=32) }}
@@ -18,4 +20,27 @@
     </p>
     <p>{{ form.submit() }}</p>
     </form>
+    </div>
+    <div style="float: right; width: 50%">
+    <table style="width: 100%">
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Role</th>
+        </tr>
+        {% for user in user_role_dic %}
+        <tr>
+            <td>{{ user }}</td>
+            <td>{{ user_role_dic[user][0] }}</td>
+            <td>{{ user_role_dic[user][1] }} {{ user_role_dic[user][2] }}</td>
+            {% if user_role_dic[3]<5 %}
+            <td style="color: red" class="bg-danger">{{ user_role_dic[user][3] }}</td>
+            {% else %}
+            <td style="color: green">{{ user_role_dic[user][3] }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
 {% endblock %}

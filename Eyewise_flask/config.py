@@ -1,4 +1,5 @@
 import os
+import smtplib
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -14,3 +15,9 @@ class Config(object):
     ADMINS = ['your-email@example.com']
     SPOTIFY_ID = "8200001dc049483a9eee57b477832451"
     SPOTIFY_SECRET= "e88026aa9a494f7f949bc1d473406f32"
+
+    # server = smtplib.SMTP('smtp.gmail.com', 587)
+    # server.starttls()
+    # server.login("YOUR EMAIL ADDRESS", "YOUR PASSWORD") #TODO Add email stuff
+
+

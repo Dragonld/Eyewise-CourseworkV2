@@ -11,10 +11,20 @@
         </tr>
         <tr>
             <td>
-               {% if user.address %} <p> Address; {{ user.address1 }}, {{ user.address2 }}, {{ user.town_city }}, {{ user.postcode }}</p> {% endif %}
-                {% if user.telephone_num %}<p> Telephone number: {{ user.telephone_num }}</p> {% endif %}
+                name = {{ user.first_name }} {{ user.last_name }}
             </td>
         </tr>
+        <tr>
+            <td>
+                email = {{ user.email }}
+            </td>
+        </tr>
+            {% if user.address %} <tr><td>
+                <p> Address; {{ user.address1 }}, {{ user.address2 }}, {{ user.town_city }}, {{ user.postcode }}</p>
+            </td></tr>{% endif %}
+            {% if user.telephone_num %}<tr><td>
+                <p> Telephone number: {{ user.telephone_num }}</p>
+            </td></tr>{% endif %}
     </table>
     <hr>
     {% for post in posts %}
