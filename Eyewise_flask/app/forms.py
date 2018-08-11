@@ -152,3 +152,9 @@ class OptomForm(FlaskForm):
                                ('29', '29'),
                                ('30', '30'), ('31', '31')])
     submit = SubmitField("Add date")
+
+
+class HelpForm(FlaskForm):
+    question = StringField("Question", validators=[DataRequired()])
+    answer = StringField("Answer", validators=[DataRequired()])
+    submit = SubmitField("Submit")

@@ -1,0 +1,22 @@
+{% extends"base/layout.html" %}
+
+{% block body %}
+    <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.question.label }}
+        {{ form.question(size=30) }}
+        {% for error in form.question.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.answer.label }}
+        {{ form.answer(size=30) }}
+        {% for error in form.answer.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit }}</p>
+    </form>
+{% endblock %}

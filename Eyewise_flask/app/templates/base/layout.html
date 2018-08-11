@@ -11,10 +11,9 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 	    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-{#        TODO Create an icon#}
-        <link rel="icon" type="image/png" href="../../static/images/Clip.png">
+{#        TODO Create an icon#}{# Done #}
+        <link rel="icon" type="image/png" href="../../static/images/Coursework-logo.png">
         <style>
-        /* The Modal (background) */
         .modal {
             display: none; /* Hidden by default */
             position: fixed; /* Stay in place */
@@ -27,7 +26,6 @@
             background-color: rgba(173,216,230,0.2);
         }
 
-        /* Modal Content/Box */
         .modal-content {
             position: fixed;
             bottom: 0;
@@ -41,7 +39,6 @@
             animation-duration: 0.4s;
         }
 
-        /* The Close Button */
         .close {
             color: #aaa;
             float: right;
@@ -60,9 +57,19 @@
             to {bottom:0; opacity:1}
         }
     </style>
+    <style>
+        .quest_button {background-color: transparent; border: none}
+    </style>
     <script>
-        var def_text = "<p>This is where the AI will go</p><p>List of links (question will be link text) to help pages</p><button type='button' id='trialquest' onclick='fun1()'>Open the HTML</button>";
+        var def_text = "";
+        {% for x in quest_answ %} {# TODO Turn dictionary into database #}
+        def_text += "<p><button class='quest_button' onclick='function1(\"{{ (x.answer) }}\")'>{{ x.question }}</button></p>";
+        {% endfor %}
+        {#var def_text = "<p>This is where the AI will go</p><p>List of links (question will be link text) to help pages</p><button type='button' id='trialquest' onclick='fun1()'>Open the HTML</button>";#}
 
+        function function1 (x) { {# TODO GET THIS TO WORK #}
+            $("#modal-change")[0].innerHTML = ("<p>"+x+"</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
+        };
         function fun1 () {
              $("#modal-change")[0].innerHTML = ("<p>You're not gonna do well</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
         };
@@ -70,30 +77,23 @@
             $("#modal-change")[0].innerHTML = def_text;
         };
     window.onload = function() {
-        {#TODO Add the help links#}
-        // Get the modal
         var modal = document.getElementById('myModal');
 
-        // Get the button that opens the modal
         var btn = document.getElementById("myBtn");
 
-        // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
 
 
 
-        // When the user clicks the button, open the modal
         btn.onclick = function () {
             $("#modal-change")[0].innerHTML = (def_text);
             modal.style.display = "block";
         };
 
-        // When the user clicks on <span> (x), close the modal
         span.onclick = function () {
             modal.style.display = "none";
         };
 
-        // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target === modal) {
                 modal.style.display = "none";
@@ -108,7 +108,7 @@
     </script>
         {% block head %}{% endblock %}
     </head>
-    <body>
+    <body style="font-size: 150%">
         <div class="container" style="height: 100%">
         {% include"includes/_navbar.html" %}
         {% with messages = get_flashed_messages() %}

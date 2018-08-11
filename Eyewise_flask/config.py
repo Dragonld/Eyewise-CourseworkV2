@@ -18,6 +18,6 @@ class Config(object):
 
     # server = smtplib.SMTP('smtp.gmail.com', 587)
     # server.starttls()
-    # server.login("YOUR EMAIL ADDRESS", "YOUR PASSWORD") #TODO Add email stuff
+    # server.login("eyewisetester@gmail.com", "EyewisePassword") #TODO Add email stuff
 
 

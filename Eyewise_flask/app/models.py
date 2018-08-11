@@ -129,6 +129,10 @@ class ArchiveApp(db.Model):
     date_time = db.Column(db.String(20), index=True, unique=True)
     appointment_type = db.Column(db.String(20), index=True)
 
+class QuestAns(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(30), index=True)
+    answer = db.Column(db.String(30), index=True)
 
 @login.user_loader
 def load_user(i):

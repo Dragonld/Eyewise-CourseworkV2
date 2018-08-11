@@ -1,10 +1,10 @@
 from app import app, db
 from config import Config
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm,\
-    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm
+    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm, HelpForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp
+from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp, QuestAns
 from spotipy.oauth2 import SpotifyClientCredentials
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -17,13 +17,14 @@ import time
 #TODONEeletes year old appointments
 #TODONE add a cancel appointment option
 #TODO make the website show charge fees in the appointment has been made flash
-#TODO create a logo
-#TODO add search to shop if really wanted
+#TODONE create a logo
+#TODO - Ambitious - add search to shop if really wanted
+#TODO questions
+#TODO Add an email sending thing to remind patients of appointments
+#TODO NE Add data to the information pages.
 
-Q1=
-A1=
-Q2=
-A2=
+
+quest_answ = QuestAns.query.all()
 
 
 class Thread_it:
@@ -33,19 +34,32 @@ class Thread_it:
         thread.start()  # Start the execution
 
     def run(self):
-        # msg = "YOUR MESSAGE!"
-        # Config.server.sendmail("YOUR EMAIL ADDRESS", "THE EMAIL ADDRESS TO SEND TO", msg)  # TODO add email stuff
-        # Config.server.quit()
-
-        while True:
-            for appointment in Appointments.query.all():
-                if int(appointment.date_time[:4])<datetime.now().year+1:
-                    if int(appointment.date_time[5:7])==datetime.now().month:
-                        if int(appointment.date_time[8:10])==datetime.now().day:
-                            archapp = ArchiveApp (user_id=appointment.user_id, practice=appointment.practice, date_time=appointment.date_time, appointment_type=appointment.appointment_type)
-                            db.session.delete(appointment)
-                            db.session.add(archapp)
-                            db.session.commit()
+        for appointment in Appointments.query.all():
+            
+            if int(appointment.date_time[:4]) == datetime.now().year:
+                if int(appointment.date_time[5:7]) == datetime.now().month:
+                    if int(appointment.date_time[8:10]) == datetime.now().day-1:
+                        archapp = ArchiveApp(user_id=appointment.user_id, practice=appointment.practice,
+                                             date_time=appointment.date_time,
+                                             appointment_type=appointment.appointment_type)
+                        db.session.delete(appointment)
+                        db.session.add(archapp)
+                        db.session.commit()
+                elif int(appointment.date_time[5:7]) == datetime.now().month+1 and datetime.now().day == 1:
+                        archapp = ArchiveApp(user_id=appointment.user_id, practice=appointment.practice,
+                                             date_time=appointment.date_time,
+                                             appointment_type=appointment.appointment_type)
+                        db.session.delete(appointment)
+                        db.session.add(archapp)
+                        db.session.commit()
+            elif int(appointment.date_time[:4]) == datetime.now().year-1 and (datetime.now().month and datetime.now().day) == 1:
+                    archapp = ArchiveApp(user_id=appointment.user_id, practice=appointment.practice,
+                                         date_time=appointment.date_time,
+                                         appointment_type=appointment.appointment_type)
+                    db.session.delete(appointment)
+                    db.session.add(archapp)
+                    db.session.commit()
+                #TODO NE Check that ARCHIVE DAY OLD APPOINTMENTS NOT YEAR OLD ONES
 
 
 
@@ -74,27 +88,27 @@ def home():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    return render_template("home.html", title="Home", posts=posts)
+    return render_template("home.html", title="Home", posts=posts, quest_answ=quest_answ)
 
 
 @app.route("/about")
 def about():
-    return render_template("about.html", title="Information")
+    return render_template("about.html", title="Information", quest_answ=quest_answ)
 
 
 @app.route("/contact")
 def contact():
-    return render_template("contact.html", title="Contact")
+    return render_template("contact.html", title="Contact", quest_answ=quest_answ)
 
 
 @app.route("/contact/social_media")
 def social_media():
-    return render_template("social_media.html", title="Contact")
+    return render_template("social_media.html", title="Contact", quest_answ=quest_answ)
 
 
 @app.route("/contact/where_to_find")
 def where_to_find():
-    return render_template("where_to_find.html", title="Contact")
+    return render_template("where_to_find.html", title="Contact" , quest_answ=quest_answ)
 
 
 @app.route("/make_appointment", methods=['GET', 'POST'])
@@ -102,35 +116,35 @@ def where_to_find():
 def make_appointment():
     form = MakeAppointmentForm()
     if form.validate_on_submit():
-        print(request.method)
         try:
             user = User.query.filter_by(email=form.email.data).first()
         except:
             flash("A user with your data cannot be found")
-        print("OOF")
+            return redirect(url_for("make_appointment"))
+        appointments = Appointments.query.filter_by(user_id=user.id).all()
+        if len(appointments) >= 3:
+            flash("You can ony have three appointments at one time")
+            return redirect(url_for("make_appointment"))
         user.total_num_app += 1
-        if len(form.month.data)==1:
-            month = "0" + form.month.data
+        if len(form.month.data) == 1:
+            month = "0" + str(form.month.data)
         else:
             month=form.month.data
-        if len(form.day.data)==1:
+        if len(form.day.data) == 1:
             day = "0" + form.day.data
         else:
             day=form.day.data
-        date = str(form.year.data + "-" + month+ "-" + day)
+        date = str(str(form.year.data) + "-" + month+ "-" + day)
         time = str(form.hour.data + ":" + form.minute.data)
-        date_time = date+ " " +time
-        print(form.practice.data, form.appointment_type.data,date_time)
+        date_time = date + " " + time
         if form.appointment_type.data == "Eye test":
-            optomotrist = True
+            optometrist = True
         else:
-            optomotrist = False
-        print(date_time, (int(form.hour.data)*60 + int(form.minute.data)), optomotrist)
+            optometrist = False
         if int(form.year.data)<datetime.now().year\
                 or int(form.month.data)<=datetime.now().month and int(form.year.data)==datetime.now().year\
                 or int(form.day.data)<=datetime.now().day and int(form.month.data)==datetime.now().month and int(form.year.data)==datetime.now().year:
             flash("Appointments cannot be in the past")
-            print("Attempt at past made")
             return redirect(url_for("make_appointment"))
         if form.month.data=="2" and form.day.data=="30":
             flash("February does not have 30 days")
@@ -142,16 +156,16 @@ def make_appointment():
             flash("Your selected year is not a leap year so February only has 28 days")
             return redirect(url_for("make_appointment"))
         try:
-            print(optomotrist, form.practice.data, OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first())
-            if optomotrist == True and form.practice.data!=OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first().practice:
+            if optometrist == True and form.practice.data!=OptomThere.query.filter_by(year=form.year.data, month=form.month.data, day=form.day.data).first().practice:
                 flash("We are sorry for the inconvenience but the Optomotrist is not in the practice on the day you selected")
                 return redirect(url_for("make_appointment"))
             else:
-                appointment = Appointments(practice=form.practice.data, appointment_type=form.appointment_type.data, user_id=user.id, need_optom=optomotrist, date_time=date_time)
+                appointment = Appointments(practice=form.practice.data, appointment_type=form.appointment_type.data, user_id=user.id, need_optom=optometrist, date_time=date_time)
                 db.session.add(appointment)
-                print(appointment)
                 db.session.commit()
-                flash("Appointment has been made") #Todo prices an stuff
+                flash("Appointment has been made")
+                if form.appointment_type.data == "Eye test":
+                    flash("Your eye test charge will be £20")
         except:
 
             flash("The time slot you have requested is unavailable")
@@ -163,8 +177,6 @@ def make_appointment():
         form.email.data = current_user.email
         form.year.data = datetime.now().year
         form.month.data = datetime.now().month
-    else:
-        print(form.errors)
     dtnow = datetime.now()
     n=dtnow.minute
     if n < 30 and n != 0:
@@ -183,8 +195,7 @@ def make_appointment():
 
 
     max_date_time = str(dtnow.year)+"-"+dtmaxmon+"-"+dtmaxday+"T"+str(dtnow.hour)+":"+str(n)
-    print(min_date_time, max_date_time)
-    return render_template("make_appointment.html", form=form, current_year=datetime.now().year, title="Appointment form")
+    return render_template("make_appointment.html", form=form, quest_answ=quest_answ, current_year=datetime.now().year, title="Appointment form")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -202,7 +213,7 @@ def login():
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
         return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
+    return render_template('login.html', title='Sign In', form=form, quest_answ=quest_answ)
 
 
 @app.route('/logout')
@@ -221,8 +232,6 @@ def register():
                     email=form.email.data, telephone_num=form.telephone_num.data, address1=form.address1.data,
                     address2=form.address2.data, town_city=form.town_city.data, postcode=form.postcode.data, total_num_app=0,
                     app_missed=0, total_mon_spen=0, perc_app_attend=100.0, mon_per_appoint=0.0, role=0)
-        print(form.password.data)
-        #TODO remove above print
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -233,7 +242,7 @@ def register():
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', title='Register', form=form, quest_answ=quest_answ)
 
 
 @app.route('/user/<username>')
@@ -247,7 +256,7 @@ def user(username):
             {'author': user, 'body': 'Test post #1'},
             {'author': user, 'body': 'Test post #2'}
         ]
-        return render_template('user.html', user=user, posts=posts)
+        return render_template('user.html', user=user, posts=posts, quest_answ=quest_answ)
 
 @app.before_request
 def before_request():
@@ -288,7 +297,7 @@ def edit_profile(username):
             form.address2.data = current_user.address2
             form.town_city.data = current_user.town_city
             form.postcode.data = current_user.postcode
-        return render_template('edit_profile.html', title='Edit Profile', form=form)
+        return render_template('edit_profile.html', quest_answ=quest_answ, title='Edit Profile', form=form)
 
 
 @app.route("/user/edit_password/<username>", methods=["GET", "POST"])
@@ -305,7 +314,7 @@ def change_password(username):
                 return redirect(url_for('change_password', username=current_user.username))
             user.set_password(form.new_password.data)
             db.session.commit()
-        return render_template("change_password.html", title="Change password", form= form)
+        return render_template("change_password.html", quest_answ=quest_answ, title="Change password", form= form)
 
 
 @app.route("/Shop/<shop_filter>", methods=["GET", "POST"])
@@ -335,7 +344,7 @@ def shop_main(shop_filter):
         shop = Shop.query.filter_by(brand=shop_filter).all()
     else:
         shop = Shop.query.all()
-    return render_template("shop_main.html", Title="Shop", shop=shop, filter=shop_filter, filter_list=filter_list)
+    return render_template("shop_main.html", Title="Shop", quest_answ=quest_answ, shop=shop, filter=shop_filter, filter_list=filter_list)
 
 
 @app.route("/Shop_item/<shop_item_name>", methods=["GET","POST"])
@@ -347,7 +356,7 @@ def shop_item(shop_item_name):
         if i.item_id == item.id:
             dic1[i.colour] = i.quantity
 
-    return render_template("shop_item.html", Title="Shop item", shop_item=item, stock=stock, stock_dic=dic1)
+    return render_template("shop_item.html", Title="Shop item", quest_answ=quest_answ, shop_item=item, stock=stock, stock_dic=dic1)
 
 
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
@@ -368,10 +377,10 @@ def user_cart(username):
             db.session.add(new_order)
             db.session.commit()
             flash("Item has been added")
-            return redirect("shop_item.html", shop_item_name=shop.item_name)
+            return redirect(url_for("shop_item", shop_item_name=shop.item_name))
         else:
             flash("This product is out of stock")
-            return redirect("shop_item.html", shop_item_name=shop.item_name)
+            return redirect(url_for("shop_item", shop_item_name=shop.item_name))
     order_item_dic={}
     total_cost=0
     orders = Order.query.filter_by(cart_id=cart.id).all()
@@ -389,7 +398,7 @@ def user_cart(username):
         total_cost += order_item_dic[item][0].price * order_item_dic[item][1]
     cart.total_cost = total_cost
     db.session.commit()
-    return render_template("cart.html", Title="Cart", username=username, order_item_dic=order_item_dic, Shop=Shop, user=user, cart=cart, total_cost=total_cost)
+    return render_template("cart.html", Title="Cart", quest_answ=quest_answ, username=username, order_item_dic=order_item_dic, Shop=Shop, user=user, cart=cart, total_cost=total_cost)
 
 
 @app.route("/Super_secret_page", methods=["GET", "POST"])
@@ -397,7 +406,7 @@ def admin_page():
     if current_user.role < 1 or current_user.is_anonymous:
             return abort(404)
     else:
-        return render_template("admin_page.html", Title="Admin")
+        return render_template("admin_page.html", Title="Admin", quest_answ=quest_answ) #TODO Add button that sends emails to people who have an appointment the following day.
 
 
 @app.route("/user_list", methods=["GET", "POST"])
@@ -414,7 +423,7 @@ def user_list():
             user.perc_app_attend = 100
             user.mon_per_appoint = 0
         db.session.commit()
-    return render_template("user_list.html", users=users)
+    return render_template("user_list.html", users=users, quest_answ=quest_answ)
 
 
 @app.route("/user/add_missed", methods=["GET", "POST"])
@@ -428,7 +437,7 @@ def add_missed():
         user.app_missed += form.num_missed.data
         db.session.commit()
         flash("Change has been made")
-    return render_template("app_missed.html", form=form)
+    return render_template("app_missed.html", form=form, quest_answ=quest_answ)
 
 
 @app.route("/user/add_mon", methods=["GET", "POST"])
@@ -442,7 +451,7 @@ def add_mon():
         user.total_mon_spen += form.mon_spent.data
         db.session.commit()
         flash("Change has been made")
-    return render_template("add_mon.html", form=form)
+    return render_template("add_mon.html", form=form, quest_answ=quest_answ)
 
 
 @app.route("/my_appointments/<username>")
@@ -473,7 +482,7 @@ def my_appointments(username):
             user = User.query.filter_by(id=appointment.user_id).first()
             appointment_list.append([appointment, user])
 
-    return render_template("my_appointments.html", title="Your appointments", appointments=appointment_list)
+    return render_template("my_appointments.html", quest_answ=quest_answ, title="Your appointments", appointments=appointment_list)
 
 
 @app.route("/Whaaaa/esf7dgf76sgf<cart_id>aftaf6ats7f<item_id>as6fa7sahafa<colour>asygasifgasfga", methods=["POST", "GET"])
@@ -518,7 +527,7 @@ def change_role():
         flash(user.username + "is now role" + str(user.role))
     for user in User.query.all():
         user_role_dic[user.id] = (user.username, user.first_name, user.last_name, user.role)
-    return render_template("change_role.html", title="change role", form=form, user_role_dic=user_role_dic)
+    return render_template("change_role.html", quest_answ=quest_answ, title="change role", form=form, user_role_dic=user_role_dic)
 
 
 @app.route("/Add_stock", methods=["GET", "POST"])
@@ -535,8 +544,6 @@ def add_stock():
             return redirect(url_for("add_stock"))
         db.session.commit()
         return redirect(url_for("add_stock"))
-    else:
-        print(form.errors)
     item_stock = {} #id,colour--id, name, colour, stock
     shop = Shop.query.all()
     stock = Stock.query.all()
@@ -544,7 +551,7 @@ def add_stock():
         tem_sto= Stock.query.filter_by(item_id=item.id).all()
         for s in tem_sto:
             item_stock[str(item.id)+str(s.colour)] = [item.id, item.item_name, s.colour, s.quantity]
-    return render_template("add_stock.html", title="Add stock", form=form, item_stock=item_stock)
+    return render_template("add_stock.html", quest_answ=quest_answ, title="Add stock", form=form, item_stock=item_stock)
 
 
 @app.route("/Optom_dates", methods=["GET", "POST"])
@@ -562,7 +569,35 @@ def optom_dates():
         db.session.add(info)
         db.session.commit()
         flash("Data has been added")
-    else:
-        print(form.errors)
-    return render_template("optom_dates.html", title="Optom_dates", form=form)
+    return render_template("optom_dates.html", quest_answ=quest_answ, title="Optom_dates", form=form)
 
+
+@app.route("/Add_help", methods=["GET","POST"])
+@login_required
+def add_help():
+    if current_user.role < 1 or current_user.is_anonymous:
+        return abort(404)
+    form = HelpForm() #TODO Add help form
+    if form.validate_on_submit():
+        question = form.question.data
+        answer = form.answer.data
+        q_a = QuestAns(question=question, answer=answer)
+        db.session.add(q_a)
+        db.session.commit()
+        flash("Question has been added")
+    return render_template("add_help.html", quest_answ=quest_answ, title="Add help", form=form)
+
+
+@app_route("/Send_email", methods=["GET","POST"])
+@login_required
+def send_email():
+    if current_user.role!=3:
+        return abort(404)
+    for appointment in Appointments:
+        if int(appointment.date_time[:4]) == datetime.now().year:
+            if int(appointment.date_time[5:7]) == datetime.now().month:
+                if int(appointment.date_time[8:10]) == datetime.now().day + 1:
+                    user = User.query.filter_by(id=appointment.user_id).first()
+                    # msg = "We would like to remind you that you have an appointment tomorrow."
+                    # Config.server.sendmail("YOUR EMAIL ADDRESS", user.email, msg)  # TODO add email stuff
+                    # Config.server.quit()
