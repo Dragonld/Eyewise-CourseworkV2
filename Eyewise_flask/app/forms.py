@@ -158,3 +158,19 @@ class HelpForm(FlaskForm):
     question = StringField("Question", validators=[DataRequired()])
     answer = StringField("Answer", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+class AddShopForm(FlaskForm):
+    item_name=StringField("Item name", validators=[DataRequired()])
+    brand = StringField("Brand", validators=[DataRequired()])
+    age= SelectField("Age", validators=[DataRequired()], choices=[("Adult","Adult"),("Kids","Kids")])
+    price = FloatField("Price", validators=[DataRequired()])
+    image = StringField("Image", validators=[DataRequired()])
+    submit = SubmitField("Add")
+
+class EmailForm(FlaskForm):
+    email=StringField("Email", validators=[DataRequired()])
+    submit= SubmitField("Submit")
+
+class LostPassForm(FlaskForm):
+    new_pass = StringField("New password", validators={DataRequired()})
+    submit = SubmitField("Submit")

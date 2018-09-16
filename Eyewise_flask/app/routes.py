@@ -1,7 +1,7 @@
 from app import app, db
 from config import Config
 from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProfileForm, ChangePasswordForm,\
-    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm, HelpForm
+    AddMissedForm, AddMonForm, ChangeRoleForm, AddStockForm, OptomForm, HelpForm, AddShopForm, EmailForm, LostPassForm
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp, QuestAns
@@ -10,18 +10,23 @@ from werkzeug.urls import url_parse
 from datetime import datetime
 import spotipy.util as util
 import threading
+import hashlib
+import string
+import random
 import smtplib
 import spotipy
 import time
 
-#TODONEeletes year old appointments
-#TODONE add a cancel appointment option
-#TODO make the website show charge fees in the appointment has been made flash
-#TODONE create a logo
+#TODO NE deletes year old appointments
+#TODO NE add a cancel appointment option
+#TODO NE make the website show charge fees in the appointment has been made flash
+#TODO NE create a logo
 #TODO - Ambitious - add search to shop if really wanted
 #TODO questions
-#TODO Add an email sending thing to remind patients of appointments
+#TODO NE Add an email sending thing to remind patients of appointments
 #TODO NE Add data to the information pages.
+#TODO Half done Add an image upload to shop item adding
+#TODO Google charts to compare how much bought of each colour, brand and age.
 
 
 quest_answ = QuestAns.query.all()
@@ -30,8 +35,8 @@ quest_answ = QuestAns.query.all()
 class Thread_it:
     def __init__(self):
         thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True  # Daemonize thread
-        thread.start()  # Start the execution
+        thread.daemon = True
+        thread.start()
 
     def run(self):
         for appointment in Appointments.query.all():
@@ -142,7 +147,7 @@ def make_appointment():
         else:
             optometrist = False
         if int(form.year.data)<datetime.now().year\
-                or int(form.month.data)<=datetime.now().month and int(form.year.data)==datetime.now().year\
+                or int(form.month.data)<datetime.now().month and int(form.year.data)==datetime.now().year\
                 or int(form.day.data)<=datetime.now().day and int(form.month.data)==datetime.now().month and int(form.year.data)==datetime.now().year:
             flash("Appointments cannot be in the past")
             return redirect(url_for("make_appointment"))
@@ -537,11 +542,16 @@ def add_stock():
         return abort(404)
     form = AddStockForm()
     if form.validate_on_submit():
-        stock = Stock.query.filter_by(item_id=form.id.data, colour=form.colour.data).first()
-        stock.quantity += form.stock.data
-        if stock.quantity < 0:
-            flash("You cannot have fewer tha  0")
-            return redirect(url_for("add_stock"))
+        try:
+            stock = Stock.query.filter_by(item_id=form.id.data, colour=form.colour.data).first()
+            stock.quantity += form.stock.data
+            if stock.quantity < 0:
+                flash("You cannot have fewer tha  0")
+                return redirect(url_for("add_stock"))
+        except:
+            stock_quantity=form.stock.data
+            new_stock = Stock(colour=form.colour.data, item_id=form.id.data, quantity=stock_quantity)
+            db.session.add(new_stock)
         db.session.commit()
         return redirect(url_for("add_stock"))
     item_stock = {} #id,colour--id, name, colour, stock
@@ -588,16 +598,70 @@ def add_help():
     return render_template("add_help.html", quest_answ=quest_answ, title="Add help", form=form)
 
 
-@app_route("/Send_email", methods=["GET","POST"])
+@app.route("/Send_email", methods=["GET","POST"])
 @login_required
 def send_email():
-    if current_user.role!=3:
+    if current_user.role<3 or current_user.is_anonymous:
         return abort(404)
-    for appointment in Appointments:
+
+    for appointment in Appointments.query.all():
         if int(appointment.date_time[:4]) == datetime.now().year:
             if int(appointment.date_time[5:7]) == datetime.now().month:
                 if int(appointment.date_time[8:10]) == datetime.now().day + 1:
+                    user = User.query.filter_by(id=appointment.user_id).first() #TODO NE email stuff
+                    print("Sending", user.email)
+                    msg = "We would like to remind you that you have an appointment tomorrow."
+                    Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
+
+            elif int(appointment.date_time[5:7]) == datetime.now().month+1 and int(appointment.date_time[8:10])==1:
+                if (datetime.now().day==31 and datetime.now().month==(1 or 3 or 5 or 7 or 8 or 10 or 12)) or (datetime.now().day==30 and datetime.now().month==(4 or 6 or 9 or 11)) or (datetime.now().month==2 and (datetime.now().day==28 and datetime.now().year%4!=0)or datetime.now().day==29 and datetime.now().year%4==0):
                     user = User.query.filter_by(id=appointment.user_id).first()
-                    # msg = "We would like to remind you that you have an appointment tomorrow."
-                    # Config.server.sendmail("YOUR EMAIL ADDRESS", user.email, msg)  # TODO add email stuff
-                    # Config.server.quit()
+                    print("Sending", user.email)
+                    msg = "We would like to remind you that you have an appointment tomorrow."
+                    Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
+
+        elif int(appointment.date_time[:4]) == datetime.now().year+1 and (int(appointment.date_time[5:7])and int(appointment.date_time[8:10]))==1:
+            user = User.query.filter_by(id=appointment.user_id).first()
+            print("Sending", user.email)
+            msg = "We would like to remind you that you have an appointment tomorrow."
+            Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
+
+    return redirect(url_for("admin_page"))
+
+
+@app.route("/add_shop_item", methods=["GET", "POST"])
+@login_required
+def add_shop():
+    if current_user.role < 3 or current_user.is_anonymous:
+        return abort(404)
+    form = AddShopForm()
+    if form.validate_on_submit():
+        new_item = Shop(item_name=form.item_name.data, brand=form.brand.data, age=form.age.data, price=form.price.data,
+                        image=form.image.data)
+        db.session.add(new_item)
+        db.session.commit()
+        flash("Item has been added")
+    return render_template("add_shop.html", title="Add shop", form=form)
+
+@app.route("/password_recovery")
+def reset_stuff_email():
+    form = EmailForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        try:
+            user = User.query.filter_by(email=email).first()
+        except:
+            flash("A user with your data cannot be found")
+            return redirect(url_for("reser_stuff_email"))
+        return redirect(url_for(reset_password(user.id)))
+    return render_template("pass_res_email.html", title="Email needed", form=form)
+
+
+@app.route(str("/password_recovery"+str(hashlib.md5((string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]+"user_id"+string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]).encode("utf-8")).hexdigest())), methods=["GET", "POST"])
+def reset_password(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    form = LostPassForm()
+    if form.validate_on_submit():
+        user.set_password(form.new_pass)
+        db.session.commit()
+    return render_template("pass_reset.html", title="Pass reset", form=form)

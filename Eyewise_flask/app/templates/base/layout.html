@@ -11,7 +11,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 	    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-{#        TODO Create an icon#}{# Done #}
+{#        TODO NE Create an icon#}{# Done #}
         <link rel="icon" type="image/png" href="../../static/images/Coursework-logo.png">
         <style>
         .modal {
@@ -62,17 +62,15 @@
     </style>
     <script>
         var def_text = "";
-        {% for x in quest_answ %} {# TODO Turn dictionary into database #}
+        {% for x in quest_answ %} {# TODO NE Turn dictionary into database #}
         def_text += "<p><button class='quest_button' onclick='function1(\"{{ (x.answer) }}\")'>{{ x.question }}</button></p>";
         {% endfor %}
         {#var def_text = "<p>This is where the AI will go</p><p>List of links (question will be link text) to help pages</p><button type='button' id='trialquest' onclick='fun1()'>Open the HTML</button>";#}
 
-        function function1 (x) { {# TODO GET THIS TO WORK #}
+        function function1 (x) { {# TODO NE GET THIS TO WORK #}
             $("#modal-change")[0].innerHTML = ("<p>"+x+"</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
         };
-        function fun1 () {
-             $("#modal-change")[0].innerHTML = ("<p>You're not gonna do well</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
-        };
+
         function homebutt () {
             $("#modal-change")[0].innerHTML = def_text;
         };
