@@ -1,0 +1,91 @@
+{% extends "base/layout.html" %}
+{% block head %}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      google.charts.setOnLoadCallback(drawChart1);
+      google.charts.setOnLoadCallback(drawChart2);
+      google.charts.setOnLoadCallback(drawChart3);
+
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Age');
+        data.addColumn('number', 'Sold');
+        data.addRows([
+            ['Adults', {{ adult_total }}],
+            ['Child', {{ child_total }}]
+        ]);
+
+        var options = {'title':'Age to amount sold',
+                       'width':350,
+                       'height':300};
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+       function drawChart1() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Colour');
+        data.addColumn('number', 'Sold');
+           {% for colour in colour_sold %}
+        data.addRows([
+            ["{{ colour }}", {{ colour_sold[colour] }}]
+        ]);
+           {% endfor %}
+
+        var options = {'title':'Colour to amount sold',
+                       'width':350,
+                       'height':300};
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
+        chart.draw(data, options);
+      }
+       function drawChart2() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Brand');
+        data.addColumn('number', 'Sold');
+           {% for brand in brand_sold %}
+        data.addRows([
+            ["{{ brand }}", {{ brand_sold[brand] }}]
+        ]);
+           {% endfor %}
+
+        var options = {'title':'Brand to amount sold',
+                       'width':350,
+                       'height':300};
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div2'));
+        chart.draw(data, options);
+      }
+      function drawChart3() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'ID');
+        data.addColumn('number', 'Sold');
+           {% for id in id_sold %}
+        data.addRows([
+            ["{{ id }}", {{ id_sold[id] }}]
+        ]);
+           {% endfor %}
+
+        var options = {'title':'Item ID to amount sold',
+                       'width':350,
+                       'height':300};
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div3'));
+        chart.draw(data, options);
+      }
+    </script>
+{% endblock %}
+
+{% block body %}
+    <table>
+        <tr>
+            <td><div id="chart_div"></div></td>
+            <td><div id="chart_div1"></div></td>
+            <td><div id="chart_div2"></div></td>
+            <td><div id="chart_div3"></div></td>
+        </tr>
+    </table>
+    <div id="chart_div"></div>
+    <div id="chart_div1"></div>
+    <div id="chart_div2"></div>
+{% endblock %}
+
+{#TODO Get this to work#}

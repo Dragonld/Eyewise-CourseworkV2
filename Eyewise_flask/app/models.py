@@ -95,6 +95,7 @@ class Stock(db.Model):
     colour = db.Column(db.String, index=True)
     quantity = db.Column(db.Integer)
     item_id = db.Column(db.Integer, db.ForeignKey("shop.id"))
+    sold = db.Column(db.Integer)
 
 
 class Cart(db.Model):

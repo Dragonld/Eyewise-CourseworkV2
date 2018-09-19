@@ -20,10 +20,14 @@
             {#$("#colour_selector").find('option').attr('selected',true);#}
             var e = document.getElementById("colour_selector");
             var value = e.options[e.selectedIndex].text;
-            if (value !== "Colours") {
-             window.alert("Item has been added to your cart");
-            $.post("{{ url_for("user_cart", username=current_user.username) }}", {colour:value, item_id:{{shop_item.id}}});
-        }}
+            if (value === "Colours") {
+                return;
+            }
+            window.alert("Item has been added to your cart");
+            $.post("{{ url_for("user_cart", username=current_user.username) }}", {
+                colour: value,
+                item_id:{{shop_item.id}}
+            });}
 
     </script>
 {% endblock %}
@@ -31,9 +35,7 @@
 {% block shop_item_body %}
     <div class="text-center">
     <div  class="item_img">
-    <p><img style="text-align: center;" src={{ url_for("static", filename=shop_item.image) }} ></p>
-        <br><br><br><br>
-    </div>
+    <p><img style="text-align: center;" src={{ url_for("static", filename="images/"+shop_item.image) }} ></p>
     </div>
     <p class="Price">{{ shop_item.price }}</p>
     <table style="width: 10%";>
@@ -56,4 +58,5 @@
             <td><input type="button" value="Add to cart" onclick="submit_it()"/></td>
         </tr>
     </table>
+    </div>
 {% endblock %}

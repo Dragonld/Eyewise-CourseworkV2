@@ -26,7 +26,10 @@ import time
 #TODO NE Add an email sending thing to remind patients of appointments
 #TODO NE Add data to the information pages.
 #TODO Half done Add an image upload to shop item adding
-#TODO Google charts to compare how much bought of each colour, brand and age.
+#TODO NE Google charts to compare how much bought of each colour, brand and age.
+#TODO Add reset password secure thing
+#TODO add auto restock email
+
 
 
 quest_answ = QuestAns.query.all()
@@ -364,11 +367,14 @@ def shop_item(shop_item_name):
     return render_template("shop_item.html", Title="Shop item", quest_answ=quest_answ, shop_item=item, stock=stock, stock_dic=dic1)
 
 
+global last_stock_mail
+last_stock_mail = 0
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
 def user_cart(username):
     if username != current_user.username or current_user.is_anonymous:
         return abort(404)
+    global last_stock_mail
     user = User.query.filter_by(username=username).first()
     cart = Cart.query.filter_by(user_id=user.id).first()
     if request.method == "POST":
@@ -379,13 +385,21 @@ def user_cart(username):
         if stock.quantity > 0:
             new_order = Order(cart_id=cart.id, shop_id=shop.id, colour=colour)
             stock.quantity -= 1
+            stock.sold += 1
+            if stock.quantity <= 5 and last_stock_mail != datetime.now().date():
+                msg = "Please order more of item " + str(stock.item_id) + " in " + (stock.colour)
+                Config.server.sendmail("eyewisetester@gmail.com", "eyewisetester@gmail.com", msg)
+                last_stock_mail = datetime.now().date()
             db.session.add(new_order)
             db.session.commit()
             flash("Item has been added")
+            print("MOO")
             return redirect(url_for("shop_item", shop_item_name=shop.item_name))
+            print("Bat")
         else:
             flash("This product is out of stock")
             return redirect(url_for("shop_item", shop_item_name=shop.item_name))
+    print("BAT")
     order_item_dic={}
     total_cost=0
     orders = Order.query.filter_by(cart_id=cart.id).all()
@@ -501,6 +515,7 @@ def remove_item(item_id, colour, cart_id):
     stock = Stock.query.filter_by(item_id=item_id, colour=colour).first()
     order = Order.query.filter_by(cart_id=cart.id, shop_id=item.id, colour=colour).first()
     stock.quantity += 1
+    stock.sold -= 1
     db.session.delete(order)
     db.session.commit()
     return redirect(url_for("user_cart", username=current_user.username))
@@ -549,9 +564,13 @@ def add_stock():
                 flash("You cannot have fewer tha  0")
                 return redirect(url_for("add_stock"))
         except:
-            stock_quantity=form.stock.data
-            new_stock = Stock(colour=form.colour.data, item_id=form.id.data, quantity=stock_quantity)
-            db.session.add(new_stock)
+            if len(Shop.query.filter_by(id=form.id.data).all()) != 0:
+                stock_quantity=form.stock.data
+                new_stock = Stock(colour=form.colour.data, item_id=form.id.data, quantity=stock_quantity)
+                db.session.add(new_stock)
+            else:
+                flash("There is no item with that ID")
+                return redirect(url_for("add_stock"))
         db.session.commit()
         return redirect(url_for("add_stock"))
     item_stock = {} #id,colour--id, name, colour, stock
@@ -609,20 +628,17 @@ def send_email():
             if int(appointment.date_time[5:7]) == datetime.now().month:
                 if int(appointment.date_time[8:10]) == datetime.now().day + 1:
                     user = User.query.filter_by(id=appointment.user_id).first() #TODO NE email stuff
-                    print("Sending", user.email)
                     msg = "We would like to remind you that you have an appointment tomorrow."
                     Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
 
             elif int(appointment.date_time[5:7]) == datetime.now().month+1 and int(appointment.date_time[8:10])==1:
                 if (datetime.now().day==31 and datetime.now().month==(1 or 3 or 5 or 7 or 8 or 10 or 12)) or (datetime.now().day==30 and datetime.now().month==(4 or 6 or 9 or 11)) or (datetime.now().month==2 and (datetime.now().day==28 and datetime.now().year%4!=0)or datetime.now().day==29 and datetime.now().year%4==0):
                     user = User.query.filter_by(id=appointment.user_id).first()
-                    print("Sending", user.email)
                     msg = "We would like to remind you that you have an appointment tomorrow."
                     Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
 
         elif int(appointment.date_time[:4]) == datetime.now().year+1 and (int(appointment.date_time[5:7])and int(appointment.date_time[8:10]))==1:
             user = User.query.filter_by(id=appointment.user_id).first()
-            print("Sending", user.email)
             msg = "We would like to remind you that you have an appointment tomorrow."
             Config.server.sendmail("eyewisetester@gmail.com", user.email, msg)
 
@@ -641,9 +657,9 @@ def add_shop():
         db.session.add(new_item)
         db.session.commit()
         flash("Item has been added")
-    return render_template("add_shop.html", title="Add shop", form=form)
+    return render_template("add_shop.html", quest_answ=quest_answ, title="Add shop", form=form)
 
-@app.route("/password_recovery")
+@app.route("/password_recovery", methods=["GET", "POST"])
 def reset_stuff_email():
     form = EmailForm()
     if form.validate_on_submit():
@@ -654,7 +670,7 @@ def reset_stuff_email():
             flash("A user with your data cannot be found")
             return redirect(url_for("reser_stuff_email"))
         return redirect(url_for(reset_password(user.id)))
-    return render_template("pass_res_email.html", title="Email needed", form=form)
+    return render_template("pass_res_email.html", quest_answ=quest_answ, title="Email needed", form=form)
 
 
 @app.route(str("/password_recovery"+str(hashlib.md5((string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]+"user_id"+string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]).encode("utf-8")).hexdigest())), methods=["GET", "POST"])
@@ -664,4 +680,42 @@ def reset_password(user_id):
     if form.validate_on_submit():
         user.set_password(form.new_pass)
         db.session.commit()
-    return render_template("pass_reset.html", title="Pass reset", form=form)
+    return render_template("pass_reset.html", quest_answ=quest_answ, title="Pass reset", form=form)
+
+
+@app.route("/statistics", methods=["GET", "POST"])
+def pi_charts():
+    if current_user.role < 3 or current_user.is_anonymous:
+        return abort(404)
+    adult_total = 0
+    child_total = 0
+    colour_sold = {}
+    brand_sold = {}
+    id_sold = {}
+
+    for x in Shop.query.filter_by(age = "Adult").all():
+        for i in Stock.query.filter_by(item_id = x.id):
+            adult_total += i.sold
+    for x in Shop.query.filter_by(age = "Kids").all():
+        for i in Stock.query.filter_by(item_id = x.id):
+            child_total += i.sold
+
+    for item in Stock.query.all():
+        if item.colour not in colour_sold:
+            colour_sold[str(item.colour)] = item.sold
+        else:
+            colour_sold[str(item.colour)] += item.sold
+
+    for x in Shop.query.all():
+        if x.brand not in brand_sold:
+            brand_sold[x.brand]= 0
+        for y in Stock.query.filter_by(item_id = x.id).all():
+            brand_sold[x.brand] += y.sold
+
+    for x in Shop.query.all():
+        id_sold[x.id] = 0
+        for y in Stock.query.filter_by(item_id = x.id).all():
+            id_sold[x.id] += y.sold
+
+    print(child_total, adult_total, colour_sold, brand_sold)
+    return render_template("statistics.html", title="Statistics", quest_answ=quest_answ, Shop=Shop, Stock=Stock, adult_total=adult_total, child_total=child_total, colour_sold=colour_sold, brand_sold=brand_sold, id_sold=id_sold)
