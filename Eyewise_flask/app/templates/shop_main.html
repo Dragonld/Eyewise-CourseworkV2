@@ -22,9 +22,9 @@
     </table>
     <ul class="Product_list">
     {% for item in shop %}
-        <li>
+        <li style="width: 250px">
             <a href="{{ url_for("shop_item", shop_item_name=item.item_name) }}">
-                <img src={{url_for("static", filename="images/"+item.image) }}>
+                <img style="height: 120px;width: 240px" src={{url_for("static", filename="images/"+item.image) }}>
                 <h4 style="text-align: center">{{ item.item_name }}</h4>
                 <p class="price">{{ item.price }}</p>
             </a>
@@ -33,6 +33,7 @@
     {% endfor %}
     </ul>
     {% if current_user.role == 3  %}
+        <p style="float: left;width: 100%"> </p>
         <p><a href="{{ url_for("add_shop") }}">Add item to the shop</a></p>
         <p><a href="{{ url_for("add_stock") }}">Add stock to items</a></p>
     {% endif %}

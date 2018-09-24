@@ -33,30 +33,23 @@
 {% endblock %}
 
 {% block shop_item_body %}
-    <div class="text-center">
-    <div  class="item_img">
-    <p><img style="text-align: center;" src={{ url_for("static", filename="images/"+shop_item.image) }} ></p>
-    </div>
-    <p class="Price">{{ shop_item.price }}</p>
-    <table style="width: 10%";>
+    <table style="text-align: center;float: left;width: 100%">
         <tr>
-            <td>
-                <select id="colour_selector" onchange="function1({{ stock_dic }})" style="font-size: 15px" form="add_to_cart">
-                <option value="Colours" selected="Colours">Colours</option>
-                {% for item in stock_dic%}
-                    <option value="{{ item }}" id="colour_option">{{ item }}</option> {# item = key #}
-                {% endfor %}
-                </select>
-            </td>
-            <td>
-
-            <td>
-                <p id = "colour_stock" style="font-size: 15px"></p>
-            </td>
+            <td class="Price">{{ shop_item.price }}</td>
         </tr>
-        <tr>
-            <td><input type="button" value="Add to cart" onclick="submit_it()"/></td>
-        </tr>
+                <tr>
+                    <td>
+                        <select id="colour_selector" onchange="function1({{ stock_dic }})" style="font-size: 15px" form="add_to_cart">
+                            <option value="Colours" selected="Colours">Colours</option>
+                            {% for item in stock_dic%}
+                                <option value="{{ item }}" id="colour_option">{{ item }}</option> {# item = key #}
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td id = "colour_stock" style="font-size: 15px"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="Add to cart" onclick="submit_it()"/></td>
+                </tr>
     </table>
-    </div>
 {% endblock %}

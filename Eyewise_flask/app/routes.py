@@ -5,17 +5,14 @@ from app.forms import MakeAppointmentForm, LoginForm, RegistrationForm, EditProf
 from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp, QuestAns
-from spotipy.oauth2 import SpotifyClientCredentials
 from werkzeug.urls import url_parse
 from datetime import datetime
-import spotipy.util as util
 import threading
 import hashlib
 import string
 import random
 import smtplib
-import spotipy
-import time
+import json
 
 #TODO NE deletes year old appointments
 #TODO NE add a cancel appointment option
@@ -555,6 +552,7 @@ def change_role():
 def add_stock():
     if current_user.role < 3 or current_user.is_anonymous:
         return abort(404)
+    global last_stock_mail
     form = AddStockForm()
     if form.validate_on_submit():
         try:
@@ -571,6 +569,10 @@ def add_stock():
             else:
                 flash("There is no item with that ID")
                 return redirect(url_for("add_stock"))
+        if stock.quantity <= 5 and last_stock_mail != datetime.now().date():
+            msg = "Please order more of item " + str(stock.item_id) + " in " + (stock.colour)
+            Config.server.sendmail("eyewisetester@gmail.com", "eyewisetester@gmail.com", msg)
+            last_stock_mail = datetime.now().date()
         db.session.commit()
         return redirect(url_for("add_stock"))
     item_stock = {} #id,colour--id, name, colour, stock
@@ -664,17 +666,21 @@ def reset_stuff_email():
     form = EmailForm()
     if form.validate_on_submit():
         email = form.email.data
-        try:
-            user = User.query.filter_by(email=email).first()
-        except:
+        user = User.query.filter_by(email=email).first()
+        print(user)
+        if user == None:
             flash("A user with your data cannot be found")
-            return redirect(url_for("reser_stuff_email"))
-        return redirect(url_for(reset_password(user.id)))
+            flash("Please remember that this is case sensitive.")
+            return redirect(url_for("reset_stuff_email"))
+        hash = hashlib.sha1()
+        hash.update(str(datetime.now()).encode('utf-8'))
+        print(hash.hexdigest())
+        return redirect(url_for("reset_password", user_id=user.id, salt=hash.hexdigest()))
     return render_template("pass_res_email.html", quest_answ=quest_answ, title="Email needed", form=form)
 
 
-@app.route(str("/password_recovery"+str(hashlib.md5((string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]+"user_id"+string.ascii_letters[random.randint(0, 51)]+string.ascii_letters[random.randint(0, 51)]).encode("utf-8")).hexdigest())), methods=["GET", "POST"])
-def reset_password(user_id):
+@app.route(str("/password_recovery/<user_id>/<salt>"), methods=["GET", "POST"])
+def reset_password(user_id, salt):
     user = User.query.filter_by(id=user_id).first()
     form = LostPassForm()
     if form.validate_on_submit():

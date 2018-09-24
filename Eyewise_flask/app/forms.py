@@ -172,5 +172,5 @@ class EmailForm(FlaskForm):
     submit= SubmitField("Submit")
 
 class LostPassForm(FlaskForm):
-    new_pass = StringField("New password", validators={DataRequired()})
+    new_pass = PasswordField('New_password', validators=[DataRequired()])
     submit = SubmitField("Submit")
