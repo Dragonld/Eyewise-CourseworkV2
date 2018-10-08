@@ -321,7 +321,7 @@ def change_password(username):                                              #cha
 def shop_main(shop_filter):                                                 #shop main
     filter_list=[]                                                          #shop_filter:string
     colours=[]                                                              #shop_main.html
-    brands=[]                                                               #creates the shop filters and decides wha items should be shown
+    brands=[]                                                               #creates the shop filters and decides what items should be shown
     ages=["Adult", "Kids"]
     for age in ages:
         filter_list.append(age)
@@ -605,7 +605,7 @@ def optom_dates():                                          #Optom_dates
 @login_required
 def add_help():                                                 #add help
     if current_user.role < 1 or current_user.is_anonymous:      #none
-        return abort(404)                                       #adda_help.html
+        return abort(404)                                       #add_help.html
     form = HelpForm()                                           #Allows admins to add questions and answers to the help modal.
     if form.validate_on_submit():
         question = form.question.data
@@ -619,11 +619,10 @@ def add_help():                                                 #add help
 
 @app.route("/Send_email", methods=["GET","POST"])
 @login_required
-def send_email():
-    if current_user.role<3 or current_user.is_anonymous:
-        return abort(404)
-
-    for appointment in Appointments.query.all():
+def send_email():                                               #send email
+    if current_user.role<3 or current_user.is_anonymous:        #None
+        return abort(404)                                       #redirect to admin page
+    for appointment in Appointments.query.all():                #When the button is pressed it sends an email to all people with an appointment the following day
         if int(appointment.date_time[:4]) == datetime.now().year:
             if int(appointment.date_time[5:7]) == datetime.now().month:
                 if int(appointment.date_time[8:10]) == datetime.now().day + 1:
@@ -647,10 +646,10 @@ def send_email():
 
 @app.route("/add_shop_item", methods=["GET", "POST"])
 @login_required
-def add_shop():
-    if current_user.role < 3 or current_user.is_anonymous:
-        return abort(404)
-    form = AddShopForm()
+def add_shop():                                             #add shop
+    if current_user.role < 3 or current_user.is_anonymous:  #none
+        return abort(404)                                   #add_shop.html
+    form = AddShopForm()                                    #Takes the data in the database and adds the new item to the shop
     if form.validate_on_submit():
         new_item = Shop(item_name=form.item_name.data, brand=form.brand.data, age=form.age.data, price=form.price.data,
                         image=form.image.data)
@@ -660,10 +659,10 @@ def add_shop():
     return render_template("add_shop.html", quest_answ=quest_answ, title="Add shop", form=form)
 
 @app.route("/password_recovery", methods=["GET", "POST"])
-def reset_stuff_email():
-    form = EmailForm()
-    if form.validate_on_submit():
-        email = form.email.data
+def reset_stuff_email():                    #reset email stuff
+    form = EmailForm()                      #none
+    if form.validate_on_submit():           #pass_res_email.html
+        email = form.email.data             #sends the user with the input eail an email that provides a secure link where they can reset their email
         user = User.query.filter_by(email=email).first()
         print(user)
         if user == None:
@@ -686,20 +685,20 @@ def reset_stuff_email():
 
 
 @app.route(str("/password_recovery/<user_id>/<salt>"), methods=["GET", "POST"])
-def reset_password(user_id, salt):
-    user = User.query.filter_by(id=user_id).first()
-    form = LostPassForm()
-    if form.validate_on_submit():
+def reset_password(user_id, salt):                      #reset password
+    user = User.query.filter_by(id=user_id).first()     #user_id:Integer, salt:String
+    form = LostPassForm()                               #pass_reset.html
+    if form.validate_on_submit():                       #Lets the user change their password through a secure urls
         user.set_password(form.new_pass)
         db.session.commit()
     return render_template("pass_reset.html", quest_answ=quest_answ, title="Pass reset", form=form)
 
 
 @app.route("/statistics", methods=["GET", "POST"])
-def pi_charts():
-    if current_user.role < 3 or current_user.is_anonymous:
-        return abort(404)
-    adult_total = 0
+def pi_charts():                                                #pi charts
+    if current_user.role < 3 or current_user.is_anonymous:      #none
+        return abort(404)                                       #sattistics.html
+    adult_total = 0                                             #Gets the data from the databases and sends it to the html page so it can make the charts
     child_total = 0
     colour_sold = {}
     brand_sold = {}

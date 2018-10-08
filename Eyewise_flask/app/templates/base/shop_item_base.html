@@ -3,5 +3,5 @@
     <p class="text-center" style="font-weight: bolder; font-size: 120px"><em>{{ shop_item.item_name }}</em></p>
     <p class="text-center"><img style="text-align: center;height: 240px; width: 480px;" src={{ url_for("static", filename="images/"+shop_item.image) }} ></p>
     {% block shop_item_body %}
-    {% endblock %}
+    {% endblock %}          {# sets a main layout for every  #}
 {% endblock %}

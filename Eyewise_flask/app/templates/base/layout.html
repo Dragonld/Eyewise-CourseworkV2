@@ -23,8 +23,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(173,216,230,0.2);
-        }
+            background-color: rgba(173,216,230,0.2);}
 
         .modal-content {
             position: fixed;
@@ -36,38 +35,34 @@
             border: 1px solid #888;
             width: 100%; /* Could be more or less, depending on screen size */
             animation-name: animatetop;
-            animation-duration: 0.4s;
-        }
+            animation-duration: 0.4s;}
 
         .close {
             color: #aaa;
             float: right;
             font-size: 28px;
-            font-weight: bold;
-        }
+            font-weight: bold;}
 
         .close:hover,
         .close:focus {
             color: black;
             text-decoration: none;
-            cursor: pointer;
-        }
+            cursor: pointer;}
+
         @-webkit-keyframes animatetop {
             from {bottom:-300px; opacity:0}
-            to {bottom:0; opacity:1}
-        }
+            to {bottom:0; opacity:1} }
     </style>
     <style>
         .quest_button {background-color: transparent; border: none}
     </style>
     <script>
         var def_text = "";
-        {% for x in quest_answ %} {# TODO NE Turn dictionary into database #}
+        {% for x in quest_answ %}
         def_text += "<p><button class='quest_button' onclick='function1(\"{{ (x.answer) }}\")'>{{ x.question }}</button></p>";
         {% endfor %}
-        {#var def_text = "<p>This is where the AI will go</p><p>List of links (question will be link text) to help pages</p><button type='button' id='trialquest' onclick='fun1()'>Open the HTML</button>";#}
 
-        function function1 (x) { {# TODO NE GET THIS TO WORK #}
+        function function1 (x) {
             $("#modal-change")[0].innerHTML = ("<p>"+x+"</p> <button type='button' id='home_butt' onclick='homebutt()'>Back to home</button>");
         };
 
@@ -94,16 +89,14 @@
 
         window.onclick = function (event) {
             if (event.target === modal) {
-                modal.style.display = "none";
-            }
+                modal.style.display = "none";}
         };
 
-        var but1 = document.getElementById("trialquest");
         var but2 = document.getElementById("home_butt");
 
 
     }
-    </script>
+    </script>   {# creates a modal that pops up from the bottom and provides answers to common queries #}
     {% block head %}{% endblock %}
     </head>
     <body style="font-size: 150%">
