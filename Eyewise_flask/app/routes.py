@@ -6,6 +6,7 @@ from flask import render_template, url_for, redirect, request, flash, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Shop, Stock, Appointments, Cart, Order, OptomThere, ArchiveApp, QuestAns
 from werkzeug.urls import url_parse
+from email.mime.text import MIMEText
 from datetime import datetime
 import threading
 import hashlib
@@ -14,18 +15,12 @@ import random
 import smtplib
 import json
 
-#TODO NE deletes year old appointments
-#TODO NE add a cancel appointment option
-#TODO NE make the website show charge fees in the appointment has been made flash
-#TODO NE create a logo
-#TODO - Ambitious - add search to shop if really wanted
+
 #TODO questions
-#TODO NE Add an email sending thing to remind patients of appointments
 #TODO NE Add data to the information pages.
-#TODO Half done Add an image upload to shop item adding
-#TODO NE Google charts to compare how much bought of each colour, brand and age.
-#TODO Add reset password secure thing
-#TODO add auto restock email
+#TODO make test thingy
+
+
 
 
 
@@ -38,11 +33,10 @@ class Thread_it:
         thread.daemon = True
         thread.start()
 
-    def run(self):
-        for appointment in Appointments.query.all():
-            
-            if int(appointment.date_time[:4]) == datetime.now().year:
-                if int(appointment.date_time[5:7]) == datetime.now().month:
+    def run(self):                                                                                            #Thread
+        for appointment in Appointments.query.all():                                                          #Self
+            if int(appointment.date_time[:4]) == datetime.now().year:                                         #reutn none
+                if int(appointment.date_time[5:7]) == datetime.now().month:                                   #adds past appointments to the archive in the background
                     if int(appointment.date_time[8:10]) == datetime.now().day-1:
                         archapp = ArchiveApp(user_id=appointment.user_id, practice=appointment.practice,
                                              date_time=appointment.date_time,
@@ -64,7 +58,7 @@ class Thread_it:
                     db.session.delete(appointment)
                     db.session.add(archapp)
                     db.session.commit()
-                #TODO NE Check that ARCHIVE DAY OLD APPOINTMENTS NOT YEAR OLD ONES
+
 
 
 
@@ -94,6 +88,7 @@ def home():
         }
     ]
     return render_template("home.html", title="Home", posts=posts, quest_answ=quest_answ)
+#TODO make homepage
 
 
 @app.route("/about")
@@ -118,10 +113,10 @@ def where_to_find():
 
 @app.route("/make_appointment", methods=['GET', 'POST'])
 @login_required
-def make_appointment():
-    form = MakeAppointmentForm()
-    if form.validate_on_submit():
-        try:
+def make_appointment():                                                         #make_appointment
+    form = MakeAppointmentForm()                                                #None
+    if form.validate_on_submit():                                               #return make_appointment.html
+        try:                                                                    #To allow users to make valid appointments
             user = User.query.filter_by(email=form.email.data).first()
         except:
             flash("A user with your data cannot be found")
@@ -204,10 +199,10 @@ def make_appointment():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-    form = LoginForm()
+def login():                                                                                    #login
+    if current_user.is_authenticated:                                                           #none
+        return redirect(url_for('home'))                                                        #next page or login.html
+    form = LoginForm()                                                                          #let users log in
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
@@ -227,9 +222,9 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
+@app.route('/register', methods=['GET', 'POST'])                        #register
+def register():                                                         #none
+    if current_user.is_authenticated:                                   #login.html or register.html
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -250,10 +245,10 @@ def register():
     return render_template('register.html', title='Register', form=form, quest_answ=quest_answ)
 
 
-@app.route('/user/<username>')
-@login_required
-def user(username):
-    if current_user.username != username and current_user.role == 0 or current_user.is_anonymous:
+@app.route('/user/<username>')                                                                          #User
+@login_required                                                                                         #username:string
+def user(username):                                                                                     #user.html
+    if current_user.username != username and current_user.role == 0 or current_user.is_anonymous:       #allows a user to see their account
             return abort(404)
     else:
         user = User.query.filter_by(username=username).first_or_404()
@@ -263,19 +258,19 @@ def user(username):
         ]
         return render_template('user.html', user=user, posts=posts, quest_answ=quest_answ)
 
-@app.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
+@app.before_request                                 #before_request
+def before_request():                               #none
+    if current_user.is_authenticated:               #none
+        current_user.last_seen = datetime.utcnow()  #sets a users last seen
         db.session.commit()
 
 
 @app.route('/user/edit_profile/<username>', methods=['GET', 'POST'])
 @login_required
-def edit_profile(username):
-    if current_user.username != username or current_user.is_anonymous:
-            return abort(404)
-    else:
+def edit_profile(username):                                                     #edit profile
+    if current_user.username != username or current_user.is_anonymous:          #username:string
+            return abort(404)                                                   #edit_prifile.html
+    else:                                                                       #allows a user to edit their profile
         form = EditProfileForm(current_user.username, current_user.email)
         if form.validate_on_submit():
             current_user.username = form.username.data
@@ -307,10 +302,10 @@ def edit_profile(username):
 
 @app.route("/user/edit_password/<username>", methods=["GET", "POST"])
 @login_required
-def change_password(username):
-    if current_user.username != username or current_user.is_anonymous:
-            return abort(404)
-    else:
+def change_password(username):                                              #change_password
+    if current_user.username != username or current_user.is_anonymous:      #username:string
+            return abort(404)                                               #change_password.html
+    else:                                                                   #allows a user to change their password
         form = ChangePasswordForm()
         if form.validate_on_submit():
             user = User.query.filter_by(username=current_user.username).first()
@@ -323,10 +318,10 @@ def change_password(username):
 
 
 @app.route("/Shop/<shop_filter>", methods=["GET", "POST"])
-def shop_main(shop_filter):
-    filter_list=[]
-    colours=[]
-    brands=[]
+def shop_main(shop_filter):                                                 #shop main
+    filter_list=[]                                                          #shop_filter:string
+    colours=[]                                                              #shop_main.html
+    brands=[]                                                               #creates the shop filters and decides wha items should be shown
     ages=["Adult", "Kids"]
     for age in ages:
         filter_list.append(age)
@@ -353,10 +348,10 @@ def shop_main(shop_filter):
 
 
 @app.route("/Shop_item/<shop_item_name>", methods=["GET","POST"])
-def shop_item(shop_item_name):
-    dic1={}
-    item = Shop.query.filter_by(item_name=shop_item_name).first_or_404()
-    stock = Stock.query.all()
+def shop_item(shop_item_name):                                              #shop item
+    dic1={}                                                                 #shop_item_name:string
+    item = Shop.query.filter_by(item_name=shop_item_name).first_or_404()    #sheop_item.html
+    stock = Stock.query.all()                                               #Filters the item and decides what colours it comes in
     for i in stock:
         if i.item_id == item.id:
             dic1[i.colour] = i.quantity
@@ -368,7 +363,10 @@ global last_stock_mail
 last_stock_mail = 0
 @app.route("/Shop/Cart/<username>", methods=["GET","POST"])
 @login_required
-def user_cart(username):
+def user_cart(username):                                                #user cart
+    if username == None:                                                #username:string
+        flash("Please log in")                                          #shop item or cart
+        return redirect(url_for("login"))                               # allows users to add to their cart and view items in their cart
     if username != current_user.username or current_user.is_anonymous:
         return abort(404)
     global last_stock_mail
@@ -418,19 +416,19 @@ def user_cart(username):
 
 
 @app.route("/Super_secret_page", methods=["GET", "POST"])
-def admin_page():
-    if current_user.role < 1 or current_user.is_anonymous:
-            return abort(404)
-    else:
+def admin_page():                                                   #admin_page
+    if current_user.role < 1 or current_user.is_anonymous:          #none
+            return abort(404)                                       #admin_page.html
+    else:                                                           #Allows amin to access the admin tools
         return render_template("admin_page.html", Title="Admin", quest_answ=quest_answ) #TODO Add button that sends emails to people who have an appointment the following day.
 
 
 @app.route("/user_list", methods=["GET", "POST"])
 @login_required
-def user_list():
-    if current_user.role == 0 or current_user.is_anonymous:
-        return 404
-    users = User.query.all()
+def user_list():                                                    #user list
+    if current_user.role == 0 or current_user.is_anonymous:         #none
+        return 404                                                  #user_list.html
+    users = User.query.all()                                        #lets admins check the users and their stats.
     for user in users:
         if user.total_num_app != 0:
             user.perc_app_attend = 100-(user.app_missed/user.total_num_app)*100
@@ -444,10 +442,10 @@ def user_list():
 
 @app.route("/user/add_missed", methods=["GET", "POST"])
 @login_required
-def add_missed():
-    if current_user.role == 0 or current_user.is_anonymous:
-        return abort(404)
-    form = AddMissedForm()
+def add_missed():                                               #add missed
+    if current_user.role == 0 or current_user.is_anonymous:     #none
+        return abort(404)                                       #app_missed.html
+    form = AddMissedForm()                                      #Allows admins to add when a patient has missed an appointment
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         user.app_missed += form.num_missed.data
@@ -458,10 +456,10 @@ def add_missed():
 
 @app.route("/user/add_mon", methods=["GET", "POST"])
 @login_required
-def add_mon():
-    if current_user.role == 0 or current_user.is_anonymous:
-        return abort(404)
-    form = AddMonForm()
+def add_mon():                                                  #add_mon
+    if current_user.role == 0 or current_user.is_anonymous:     #none
+        return abort(404)                                       #add_mon.html
+    form = AddMonForm()                                         #Allows admins to add when a patient spends money in order to tell which patients spend more
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         user.total_mon_spen += form.mon_spent.data
@@ -472,11 +470,11 @@ def add_mon():
 
 @app.route("/my_appointments/<username>")
 @login_required
-def my_appointments(username):
-    appointment_list=[]
-    if current_user.username != username and current_user.role == 0 or current_user.is_anonymous:
-            return abort(404)
-    all_appointments = Appointments.query.all()
+def my_appointments(username):                                                                      #my_appointments
+    appointment_list=[]                                                                             #username:string
+    if current_user.username != username and current_user.role == 0 or current_user.is_anonymous:   #my_appointments.html
+            return abort(404)                                                                       #Allows a user to see all the appointments that they have made.
+    all_appointments = Appointments.query.all()                                                     #as well as allowing admins with a role of 1 or 2 to see appointments at their work place and the owner(role 3) to see all appointments
     if current_user.role == 0:
         user = User.query.filter_by(username=username).first()
         for appointment in all_appointments:
@@ -501,12 +499,12 @@ def my_appointments(username):
     return render_template("my_appointments.html", quest_answ=quest_answ, title="Your appointments", appointments=appointment_list)
 
 
-@app.route("/Whaaaa/esf7dgf76sgf<cart_id>aftaf6ats7f<item_id>as6fa7sahafa<colour>asygasifgasfga", methods=["POST", "GET"])
+@app.route("/cart_remove/esf7dgf76sgf<cart_id>aftaf6ats7f<item_id>as6fa7sahafa<colour>asygasifgasfga", methods=["POST", "GET"])
 @login_required
-def remove_item(item_id, colour, cart_id):
-    cart = Cart.query.filter_by(id=cart_id).first()
-    if current_user.id != cart.user_id:
-        flash("You do not have access to this page")
+def remove_item(item_id, colour, cart_id):                              #remove item
+    cart = Cart.query.filter_by(id=cart_id).first()                     #item_id:Integer, colour:String, cart_id:Integer
+    if current_user.id != cart.user_id:                                 #user_cart function
+        flash("You do not have access to this page")                    #Removes an item from the given user's cart
         return redirect(url_for("home"))
     item = Shop.query.filter_by(id=item_id).first()
     stock = Stock.query.filter_by(item_id=item_id, colour=colour).first()
@@ -519,10 +517,10 @@ def remove_item(item_id, colour, cart_id):
 
 @app.route("/Removing/ashjafhkajf34fhdh6fakjh7hjadfh<user_id>acsuhh76sajh<appointment_id>")
 @login_required
-def remove_appointment(user_id, appointment_id):
-    if current_user.id != user_id and current_user.role !=3:
-        flash("You do not have access to this page")
-        return redirect(url_for("home"))
+def remove_appointment(user_id, appointment_id):                            #remove appointment
+    if current_user.id != user_id and current_user.role !=3:                #user_id:Integer
+        flash("You do not have access to this page")                        #appointment_id:Integer
+        return abort(404)                                                   #Allows users to remove their appointments
     user = User.query.filter_by(id=user_id).first()
     appointment = Appointments.query.filter_by(id=appointment_id).first()
     db.session.delete(appointment)
@@ -532,10 +530,10 @@ def remove_appointment(user_id, appointment_id):
 
 @app.route("/Change_role", methods=["GET", "POST"])
 @login_required
-def change_role():
-    if current_user.role < 3 or current_user.is_anonymous:
-        return abort(404)
-    user_role_dic = {}
+def change_role():                                              #change role
+    if current_user.role < 3 or current_user.is_anonymous:      #none
+        return abort(404)                                       #change_role.html
+    user_role_dic = {}                                          #Allows the owner to change the role of different people including staff when they are hired or fired/quit.
     form = ChangeRoleForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -549,10 +547,10 @@ def change_role():
 
 @app.route("/Add_stock", methods=["GET", "POST"])
 @login_required
-def add_stock():
-    if current_user.role < 3 or current_user.is_anonymous:
-        return abort(404)
-    global last_stock_mail
+def add_stock():                                            #Add stock
+    if current_user.role < 3 or current_user.is_anonymous:  #None
+        return abort(404)                                   #add_stock.html
+    global last_stock_mail                                  #Allows the owner to add or subtract stock to an item
     form = AddStockForm()
     if form.validate_on_submit():
         try:
@@ -587,10 +585,10 @@ def add_stock():
 
 @app.route("/Optom_dates", methods=["GET", "POST"])
 @login_required
-def optom_dates():
-    if current_user.role < 3 or current_user.is_anonymous:
-        return abort(404)
-    form = OptomForm()
+def optom_dates():                                          #Optom_dates
+    if current_user.role < 3 or current_user.is_anonymous:  #None
+        return abort(404)                                   #optom_dates.html
+    form = OptomForm()                                      #This allows the owner to add the dates when the optomotrist will be in eachg shop and available to provide eye tests.
     if form.validate_on_submit():
         day = form.day.data
         month = form.month.data
@@ -605,10 +603,10 @@ def optom_dates():
 
 @app.route("/Add_help", methods=["GET","POST"])
 @login_required
-def add_help():
-    if current_user.role < 1 or current_user.is_anonymous:
-        return abort(404)
-    form = HelpForm() #TODO Add help form
+def add_help():                                                 #add help
+    if current_user.role < 1 or current_user.is_anonymous:      #none
+        return abort(404)                                       #adda_help.html
+    form = HelpForm()                                           #Allows admins to add questions and answers to the help modal.
     if form.validate_on_submit():
         question = form.question.data
         answer = form.answer.data
@@ -675,7 +673,15 @@ def reset_stuff_email():
         hash = hashlib.sha1()
         hash.update(str(datetime.now()).encode('utf-8'))
         print(hash.hexdigest())
-        return redirect(url_for("reset_password", user_id=user.id, salt=hash.hexdigest()))
+
+        msg = MIMEText(u'''<a href="http://localhost:5000'''+url_for('reset_password', user_id=user.id, salt=hash.hexdigest())+'''">Click this link to reset your password</a>''','html')
+        msg['Subject'] = 'Email reset'
+        msg['From'] = "eyewisetester@gmail.com"
+        msg['To'] = form.email.data
+        print(msg, msg.as_string())
+        Config.server.sendmail("eyewisetester@gmail.com", form.email.data, msg.as_string())
+        flash("An email has been sent to the input email")
+        #TODO email shit )
     return render_template("pass_res_email.html", quest_answ=quest_answ, title="Email needed", form=form)
 
 

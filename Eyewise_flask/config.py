@@ -15,7 +15,6 @@ class Config(object):
     ADMINS = ['your-email@example.com']
     SPOTIFY_ID = "8200001dc049483a9eee57b477832451"
     SPOTIFY_SECRET= "e88026aa9a494f7f949bc1d473406f32"
-
     server = smtplib.SMTP(host="smtp.gmail.com", port=587)
     server.starttls()
     server.login("eyewisetester@gmail.com", "EyewisePassword1") #TODO Add email stuff
